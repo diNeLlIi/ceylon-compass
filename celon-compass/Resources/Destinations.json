@@ -1,0 +1,134 @@
+[
+  {
+    "id": "04197936-ED3B-42A8-8B01-456543AF5413",
+    "name": "Sigiriya",
+    "latitude": 7.9570,
+    "longitude": 80.7603,
+    "category": "Heritage",
+    "province": "Central",
+    "district": "Matale",
+    "descriptionText": "An ancient rock fortress rising nearly 200 metres above the surrounding plain, its summit holds the ruins of a 5th-century royal palace. The approach passes frescoed galleries and the remains of a lion-shaped gateway at the base of the final staircase.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Sigiriya.jpg"
+  },
+  {
+    "id": "89EB920A-053C-485C-B35D-7F5146B45B26",
+    "name": "Dambulla",
+    "latitude": 7.8567,
+    "longitude": 80.6517,
+    "category": "Heritage",
+    "province": "Central",
+    "district": "Matale",
+    "descriptionText": "A complex of five cave shrines carved into a granite outcrop, housing statues and murals built up over more than two thousand years of continuous worship. The largest cave ceiling is covered almost entirely in painted scenes depicting the life of the Buddha.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Mucalinda_in_Dambulla_cave_temple_%282015%29.jpg"
+  },
+  {
+    "id": "880DCFE3-45D1-4E9B-8E15-8CD94B1285DE",
+    "name": "Kandy",
+    "latitude": 7.2936,
+    "longitude": 80.6413,
+    "category": "Heritage",
+    "province": "Central",
+    "district": "Kandy",
+    "descriptionText": "The last capital of Sri Lanka's ancient kings, set around an artificial lake and home to the relic said to be the Buddha's tooth. Hill mist often settles over the surrounding valley by early evening.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/f/f3/SL_Kandy_asv2020-01_img34_Sacred_Tooth_Temple.jpg"
+  },
+  {
+    "id": "500F0305-E700-476F-8C7A-1D000ED52742",
+    "name": "Nuwara Eliya",
+    "latitude": 6.9538,
+    "longitude": 80.7795,
+    "category": "Mountain",
+    "province": "Central",
+    "district": "Nuwara Eliya",
+    "descriptionText": "A former British hill station at over 1,800 metres, ringed by terraced tea estates and cool enough for log fires most evenings. Colonial-era buildings and a racecourse still give the town a distinct character from the rest of the island.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/2/22/Sri_Lanka%2C_Tea_plantations_near_Nuwara_Eliya%2C_Tea_estate.jpg"
+  },
+  {
+    "id": "A4B22271-80B7-4B01-AA00-A116324E51D1",
+    "name": "Horton Plains",
+    "latitude": 6.8096,
+    "longitude": 80.8014,
+    "category": "Mountain",
+    "province": "Central",
+    "district": "Nuwara Eliya",
+    "descriptionText": "A high montane plateau of grassland and cloud forest ending abruptly at a sheer escarpment known as World's End. Early-morning visitors are rewarded with clear views before the valley mist rolls in by mid-morning.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/2/20/World%27s_End%2C_Horton_Plains_National_Park.jpg"
+  },
+  {
+    "id": "CC1B2D9E-B189-40CB-A690-9F207257AAD8",
+    "name": "Ella",
+    "latitude": 6.8667,
+    "longitude": 81.0466,
+    "category": "Mountain",
+    "province": "Uva",
+    "district": "Badulla",
+    "descriptionText": "A small hill-country town wedged between tea-covered slopes, known for a curving nine-arch railway viaduct and several short ridge walks. The rail journey in or out is often considered as much the destination as the town itself.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/6/62/SL_Demodara_near_Ella_asv2020-01_img02.jpg"
+  },
+  {
+    "id": "1B3F98A8-4B85-45AF-B11F-7C79CEB83909",
+    "name": "Galle Fort",
+    "latitude": 6.0300,
+    "longitude": 80.2167,
+    "category": "Heritage",
+    "province": "Southern",
+    "district": "Galle",
+    "descriptionText": "A fortified old town built by the Portuguese and expanded by the Dutch, its ramparts enclosing narrow streets of colonial-era townhouses. The sea wall remains a popular spot to watch the sunset over the Indian Ocean.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/5/54/SL_Galle_Fort_asv2020-01_img24.jpg"
+  },
+  {
+    "id": "299E5701-991E-40D1-87BF-9FBB1E1626CB",
+    "name": "Mirissa",
+    "latitude": 5.9483,
+    "longitude": 80.4589,
+    "category": "Beach",
+    "province": "Southern",
+    "district": "Matara",
+    "descriptionText": "A crescent-shaped bay on the south coast backed by palm trees, used both as a swimming beach and as a departure point for whale-watching boats. The water stays calm enough for swimming for most of the year outside monsoon season.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/8/80/Secret_beach_-_Mirissa_Sri_Lanka.jpg"
+  },
+  {
+    "id": "77A01193-87CC-46DC-8F6F-0C0CEC32B7B8",
+    "name": "Yala",
+    "latitude": 6.2815,
+    "longitude": 81.4126,
+    "category": "Wildlife",
+    "province": "Southern",
+    "district": "Hambantota",
+    "descriptionText": "The island's most visited national park, with dry scrubland, lagoons and one of the highest densities of leopards anywhere in the world. Elephants, crocodiles and a wide range of water birds are also commonly seen on a single game drive.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Lankan_leopard_Yala_National_Park.jpg"
+  },
+  {
+    "id": "9707EA03-435B-4FA5-B664-84B00CB394D2",
+    "name": "Arugam Bay",
+    "latitude": 6.8400,
+    "longitude": 81.8360,
+    "category": "Beach",
+    "province": "Eastern",
+    "district": "Ampara",
+    "descriptionText": "An east-coast fishing village that has become one of the region's best-known surf breaks, with a right-hand point break drawing visitors for several months each year. Outside the surf season the bay is noticeably quieter.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Whiskey_Point_2.jpg"
+  },
+  {
+    "id": "08A5CC6C-6308-49A2-AA53-70E1B4875E82",
+    "name": "Anuradhapura",
+    "latitude": 8.3464,
+    "longitude": 80.3987,
+    "category": "Heritage",
+    "province": "North Central",
+    "district": "Anuradhapura",
+    "descriptionText": "The first of the island's ancient capitals, where enormous brick stupas and the remains of monastic complexes sit among gardens that have been maintained for well over a thousand years. The site is still an active place of Buddhist pilgrimage.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Ruwanwelisaya_Stupa_Anuradhapura.jpg"
+  },
+  {
+    "id": "2EA27FC0-E0E1-456E-841F-52C5CEF00C57",
+    "name": "Polonnaruwa",
+    "latitude": 7.9403,
+    "longitude": 81.0019,
+    "category": "Heritage",
+    "province": "North Central",
+    "district": "Polonnaruwa",
+    "descriptionText": "The second ancient capital, more compact than Anuradhapura, with well-preserved royal palace ruins and a cluster of rock-cut Buddha statues at Gal Vihara. Much of the site can be covered on foot or by bicycle in a single visit.",
+    "imageURL": "https://upload.wikimedia.org/wikipedia/commons/a/a9/Polonnaruwa_ruins_%287567515914%29.jpg"
+  }
+]
