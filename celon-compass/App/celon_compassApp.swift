@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -20,10 +21,12 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct celon_compassApp: App {
   // register app delegate for Firebase setup
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+  let persistenceController = PersistenceController.shared
 
   var body: some Scene {
     WindowGroup {
         ContentView()
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
     }
   }
 }
