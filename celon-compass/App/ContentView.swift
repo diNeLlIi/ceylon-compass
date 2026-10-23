@@ -16,6 +16,10 @@ struct ContentView: View {
             Text("Hello, world!")
         }
         .padding()
+        .task {
+            try? await AuthService.shared.signInAnonymouslyIfNeeded()
+            try? await CatalogSeeder.seedIfNeeded()
+        }
     }
 }
 
