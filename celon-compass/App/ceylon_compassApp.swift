@@ -22,11 +22,25 @@ struct celon_compassApp: App {
   // register app delegate for Firebase setup
   @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
   let persistenceController = PersistenceController.shared
+  @State private var lockState = AppLockState()
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some Scene {
     WindowGroup {
-        ContentView()
-            .environment(\.managedObjectContext, persistenceController.container.viewContext)
+        ZStack {
+            ContentView()
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+
+            if lockState.isLocked {
+                LaunchGateView(lockState: lockState)
+                    .transition(.opacity)
+            }
+        }
+    }
+    .onChange(of: scenePhase) { _, newPhase in
+        if newPhase == .background {
+            lockState.lock()
+        }
     }
   }
 }
