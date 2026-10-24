@@ -7,8 +7,7 @@ import Foundation
 import CoreData
 @testable import celon_compass
 
-/// Scripted stand-in for `BiometricService`. Returns the queued results in order
-/// (repeating the last one) and records every request.
+
 @MainActor
 final class StubAuthenticator: BiometricAuthenticating {
     var biometryKind: BiometryKind = .faceID
@@ -32,9 +31,6 @@ final class StubAuthenticator: BiometricAuthenticating {
     }
 }
 
-/// One in-memory Core Data stack for the whole test run. Creating several containers
-/// from the same model in one process makes Core Data warn about duplicate entity
-/// classes, so tests share one and look up their own objects by id.
 @MainActor
 enum TestStore {
     static let controller = PersistenceController(inMemory: true)
@@ -46,7 +42,6 @@ enum TestStore {
         return try context.count(for: request)
     }
 
-    /// Creates and saves a trip with `stopCount` stops; returns the trip.
     static func makeTrip(stopCount: Int = 2) throws -> Itinerary {
         let trip = Itinerary(context: context)
         trip.id = UUID()
@@ -59,15 +54,23 @@ enum TestStore {
             stop.itinerary = trip
         }
         try context.save()
+        tripIDs[trip.objectID] = trip.id
         return trip
     }
 
+
+    private static var tripIDs: [NSManagedObjectID: UUID] = [:]
+
+    private static func id(of trip: Itinerary) -> UUID {
+        tripIDs[trip.objectID] ?? trip.id!
+    }
+
     static func tripCount(_ trip: Itinerary) throws -> Int {
-        try count("Itinerary", where: "id == %@", trip.id! as CVarArg)
+        try count("Itinerary", where: "id == %@", id(of: trip) as CVarArg)
     }
 
     static func stopCount(of trip: Itinerary) throws -> Int {
-        try count("ItineraryStop", where: "itinerary.id == %@", trip.id! as CVarArg)
+        try count("ItineraryStop", where: "itinerary.id == %@", id(of: trip) as CVarArg)
     }
 }
 

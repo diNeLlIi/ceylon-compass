@@ -31,8 +31,7 @@ struct TripListView: View {
                     List {
                         ForEach(trips) { trip in
                             TripRow(trip: trip)
-                                // Not role: .destructive on purpose, so SwiftUI never
-                                // optimistically removes the row before auth succeeds.
+                        
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button {
                                         tripPendingDelete = trip
@@ -41,11 +40,15 @@ struct TripListView: View {
                                     }
                                     .tint(.red)
                                 }
+                                .listRowBackground(AppBrand.card)
                         }
                     }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("Trips")
+            .background(AppBrand.canvas)
+            .navigationTitle("My Trips")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {

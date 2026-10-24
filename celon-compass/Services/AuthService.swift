@@ -16,4 +16,10 @@ final class AuthService {
             try await Auth.auth().signInAnonymously()
         }
     }
+
+    // Email of the signed-in user, or nil for the anonymous guest identity.
+    var linkedEmail: String? {
+        guard let user = Auth.auth().currentUser, !user.isAnonymous else { return nil }
+        return user.email
+    }
 }

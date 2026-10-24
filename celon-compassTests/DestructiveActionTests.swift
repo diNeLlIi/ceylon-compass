@@ -12,7 +12,7 @@ import CoreData
 @MainActor
 struct DestructiveActionGuardTests {
 
-    /// Runs the guard once and reports whether the action ran and what was thrown.
+    // Runs the guard once and reports whether the action ran and what was thrown
     private func attempt(_ result: BiometricResult) async -> (ran: Bool, error: Error?, stub: StubAuthenticator) {
         let stub = StubAuthenticator(result)
         let guardian = DestructiveActionGuard(authenticator: stub)

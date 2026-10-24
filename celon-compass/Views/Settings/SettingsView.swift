@@ -4,81 +4,176 @@
 //
 
 import SwiftUI
+import StoreKit
 import CoreData
 
 struct SettingsView: View {
-    @Environment(\.managedObjectContext) private var context
-    @State private var isConfirmingDelete = false
-    @State private var isDeleting = false
-    @State private var alertTitle: String?
-    @State private var alertMessage = ""
+    @State private var model = SettingsViewModel()
+    @State private var isConfirmingClear = false
+
+    @Environment(\.requestReview) private var requestReview
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Security") {
-                    let biometry = BiometricService.shared.biometryKind
-                    Label("Unlock with \(biometry.title)", systemImage: biometry.symbolName)
-                }
-
-                Section {
-                    Button(role: .destructive) {
-                        isConfirmingDelete = true
-                    } label: {
-                        Label("Delete Account", systemImage: "person.crop.circle.badge.minus")
-                    }
-                    .disabled(isDeleting)
-                    .accessibilityIdentifier("settings.deleteAccount")
-                } footer: {
-                    Text("Removes your trips and notes from this device and deletes your account. You'll be asked to verify it's you.")
-                }
-
-                Section("About") {
-                    LabeledContent("App", value: AppBrand.name)
-                    LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
-                }
+            List {
+                accountSection
+                preferencesSection
+                dataSection
+                aboutSection
             }
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(AppBrand.canvas)
             .navigationTitle("Settings")
+            .task { await model.load() }
             .confirmationDialog(
-                "Delete your account?",
-                isPresented: $isConfirmingDelete,
+                "Clear cached maps & photos?",
+                isPresented: $isConfirmingClear,
                 titleVisibility: .visible
             ) {
-                Button("Delete Account", role: .destructive) { deleteAccount() }
+                Button("Clear Cache", role: .destructive) {
+                    Task { await model.clearCache() }
+                }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("This permanently removes your trips and notes. It can't be undone.")
+                Text("Offline maps and photos will be removed from this device. You'll be asked to verify it's you.")
             }
-            .alert(
-                alertTitle ?? "",
-                isPresented: Binding(
-                    get: { alertTitle != nil },
-                    set: { if !$0 { alertTitle = nil } }
-                )
-            ) {
-                Button("OK", role: .cancel) {}
+            .alert(item: $model.notice) { notice in
+                Alert(title: Text(notice.title), message: Text(notice.message), dismissButton: .default(Text("OK")))
+            }
+            .alert("Notifications are off", isPresented: $model.isShowingNotificationsDenied) {
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                }
+                Button("Not Now", role: .cancel) {}
             } message: {
-                Text(alertMessage)
+                Text("Allow notifications for \(AppBrand.name) in the iOS Settings app to turn this on.")
             }
         }
     }
 
-    private func deleteAccount() {
-        isDeleting = true
-        Task {
-            defer { isDeleting = false }
-            do {
-                try await AccountService(context: context).deleteAccount()
-                alertTitle = "Account deleted"
-                alertMessage = "Your data has been removed."
-            } catch {
-                // A plain cancel returns nil: nothing was deleted, nothing to report
-                if let message = DestructiveActionGuard.userMessage(for: error, noun: "your account") {
-                    alertTitle = "Account not deleted"
-                    alertMessage = message
+
+    private var accountSection: some View {
+        SettingsCard(title: "Account") {
+            NavigationLink {
+                AccountView()
+            } label: {
+                SettingsRow(
+                    title: "Link account",
+                    subtitle: AuthService.shared.linkedEmail ?? "Sync trips across devices"
+                )
+            }
+            .accessibilityIdentifier("settings.account")
+        }
+    }
+
+
+//Preferences
+    private var preferencesSection: some View {
+        SettingsCard(title: "Preferences") {
+            SettingsRow(title: "Temperature") {
+                UnitToggle(selection: Binding(
+                    get: { model.preferences.temperatureUnit },
+                    set: { model.preferences.temperatureUnit = $0 }
+                ))
+            }
+
+            Toggle("Weather alerts", isOn: Binding(
+                get: { model.preferences.weatherAlertsEnabled },
+                set: { value in Task { await model.setWeatherAlerts(value) } }
+            ))
+            .tint(AppBrand.success)
+            .accessibilityIdentifier("settings.weatherAlerts")
+
+            Toggle("Trip reminders", isOn: Binding(
+                get: { model.preferences.tripRemindersEnabled },
+                set: { value in Task { await model.setTripReminders(value) } }
+            ))
+            .tint(AppBrand.success)
+            .accessibilityIdentifier("settings.tripReminders")
+        }
+    }
+
+//user data
+    private var dataSection: some View {
+        SettingsCard(
+            title: "Data & Sync",
+            footer: model.cacheSize > 0
+                ? "Clearing removes \(model.cacheSizeText) of offline maps. Your trips and memories stay on device."
+                : "No offline maps or photos are stored. Your trips and memories stay on device."
+        ) {
+            SettingsRow(title: "Last synced") {
+                Text(model.lastSyncedText)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button {
+                Task { await model.refreshDestinations() }
+            } label: {
+                SettingsRow(
+                    title: "Refresh destinations",
+                    icon: "arrow.clockwise",
+                    tint: AppBrand.link,
+                    showsChevron: !model.isRefreshing
+                ) {
+                    if model.isRefreshing { ProgressView() }
                 }
             }
+            .disabled(model.isRefreshing)
+            .accessibilityIdentifier("settings.refresh")
+
+            Button {
+                isConfirmingClear = true
+            } label: {
+                SettingsRow(
+                    title: "Clear cached maps & photos",
+                    icon: "trash",
+                    tint: AppBrand.destructive
+                ) {
+                    BiometricBadge(kind: model.biometry)
+                }
+            }
+            .disabled(!model.canClearCache)
+            .accessibilityIdentifier("settings.clearCache")
         }
+    }
+
+    
+    
+
+    private var aboutSection: some View {
+        SettingsCard(
+            title: "About",
+            footer: "Weather data from the Department of Meteorology, Sri Lanka. Places via OpenStreetMap contributors."
+        ) {
+            SettingsRow(title: "Version") {
+                Text(versionText).foregroundStyle(.secondary)
+            }
+
+            Button {
+                requestReview()
+            } label: {
+                SettingsRow(title: "Rate \(AppBrand.name)", showsChevron: true)
+            }
+            .accessibilityIdentifier("settings.rate")
+
+            if let privacyURL = AppBrand.privacyPolicyURL {
+                Button {
+                    openURL(privacyURL)
+                } label: {
+                    SettingsRow(title: "Privacy policy", showsChevron: true)
+                }
+                .accessibilityIdentifier("settings.privacy")
+            }
+        }
+    }
+
+    private var versionText: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = info?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
     }
 }
 
