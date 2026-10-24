@@ -10,27 +10,77 @@ import SwiftUI
 @MainActor
 @Observable
 final class AppLockState {
-    private(set) var isLocked = true
-    private(set) var errorMessage: String?
+    enum LockReason: Equatable {
+        case none
+        case cancelled
+        case failed
+        case lockedOut
+    }
 
-    func authenticate() {
-        Task {
-            let result = await BiometricService.shared.authenticate(
-                reason: "Unlock Ceylon Compass"
-            )
-            switch result {
-            case .success:
-                errorMessage = nil
-                isLocked = false
-            case .failure(let message):
-                errorMessage = message
-                isLocked = true
-            }
-        }
+    private(set) var isLocked = true
+    // Protected content is only mounted after the first successful unlock.
+    private(set) var hasUnlockedOnce = false
+    private(set) var isAuthenticating = false
+    private(set) var reason: LockReason = .none
+    private(set) var failureCount = 0
+    private(set) var notice: String?
+
+    private let authenticator: any BiometricAuthenticating
+    private var lockGeneration = 0
+
+    var biometry: BiometryKind { authenticator.biometryKind }
+
+    init(authenticator: any BiometricAuthenticating = BiometricService.shared) {
+        self.authenticator = authenticator
+    }
+
+    func authenticateIfNeeded() async {
+        guard isLocked, reason == .none else { return }
+        await authenticate()
+    }
+
+    func authenticate() async {
+        guard isLocked, !isAuthenticating else { return }
+        isAuthenticating = true
+        let generation = lockGeneration
+
+        let result = await authenticator.authenticate(
+            reason: "Unlock \(AppBrand.name)",
+            purpose: .launchGate
+        )
+
+        isAuthenticating = false
+        guard generation == lockGeneration else { return }
+        apply(result)
     }
 
     func lock() {
+        lockGeneration += 1
         isLocked = true
-        errorMessage = nil
+        reason = .none
+        notice = nil
+    }
+
+    private func apply(_ result: BiometricResult) {
+        switch result {
+        case .success:
+            unlock(notice: nil)
+        case .unavailable:
+            unlock(notice: "Your device passcode is off. Turn one on in Settings to protect \(AppBrand.name).")
+        case .cancelled:
+            reason = .cancelled
+        case .failed:
+            reason = .failed
+            failureCount += 1
+        case .lockedOut:
+            reason = .lockedOut
+        }
+    }
+
+    private func unlock(notice: String?) {
+        self.notice = notice
+        reason = .none
+        hasUnlockedOnce = true
+        isLocked = false
     }
 }

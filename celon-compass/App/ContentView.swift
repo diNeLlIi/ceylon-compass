@@ -6,16 +6,20 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            
+            TripListView()
+                .tabItem { Label("Trips", systemImage: "map") }
+            
+            SettingsView()
+                .tabItem { Label("Settings", systemImage: "gearshape") }
+            
         }
-        .padding()
+        .tint(AppBrand.tealTop)
         .task {
             try? await AuthService.shared.signInAnonymouslyIfNeeded()
             try? await CatalogSeeder.seedIfNeeded()
@@ -25,4 +29,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

@@ -27,15 +27,8 @@ struct celon_compassApp: App {
 
   var body: some Scene {
     WindowGroup {
-        ZStack {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-
-            if lockState.isLocked {
-                LaunchGateView(lockState: lockState)
-                    .transition(.opacity)
-            }
-        }
+        RootView(lockState: lockState)
+            .environment(\.managedObjectContext, persistenceController.container.viewContext)
     }
     .onChange(of: scenePhase) { _, newPhase in
         if newPhase == .background {

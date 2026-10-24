@@ -11,14 +11,30 @@
 		DF32023C3088C3FE004A38CF /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DF32023B3088C3FE004A38CF /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		EF41E139308CA0B8006A9520 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DFD85DD2306D49A3009DE921 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DFD85DD9306D49A3009DE921;
+			remoteInfo = "celon-compass";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		DFD85DDA306D49A3009DE921 /* celon-compass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "celon-compass.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "celon-compassTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DFD85DDC306D49A3009DE921 /* celon-compass */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "celon-compass";
+			sourceTree = "<group>";
+		};
+		EF41E136308CA0B8006A9520 /* celon-compassTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "celon-compassTests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +49,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EF41E132308CA0B8006A9520 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -40,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				DFD85DDC306D49A3009DE921 /* celon-compass */,
+				EF41E136308CA0B8006A9520 /* celon-compassTests */,
 				DFD85DDB306D49A3009DE921 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				DFD85DDA306D49A3009DE921 /* celon-compass.app */,
+				EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,6 +104,29 @@
 			productReference = DFD85DDA306D49A3009DE921 /* celon-compass.app */;
 			productType = "com.apple.product-type.application";
 		};
+		EF41E134308CA0B8006A9520 /* celon-compassTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF41E13D308CA0B8006A9520 /* Build configuration list for PBXNativeTarget "celon-compassTests" */;
+			buildPhases = (
+				EF41E131308CA0B8006A9520 /* Sources */,
+				EF41E132308CA0B8006A9520 /* Frameworks */,
+				EF41E133308CA0B8006A9520 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF41E13A308CA0B8006A9520 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				EF41E136308CA0B8006A9520 /* celon-compassTests */,
+			);
+			name = "celon-compassTests";
+			packageProductDependencies = (
+			);
+			productName = "celon-compassTests";
+			productReference = EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -86,11 +134,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					DFD85DD9306D49A3009DE921 = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					EF41E134308CA0B8006A9520 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = DFD85DD9306D49A3009DE921;
 					};
 				};
 			};
@@ -112,12 +164,20 @@
 			projectRoot = "";
 			targets = (
 				DFD85DD9306D49A3009DE921 /* celon-compass */,
+				EF41E134308CA0B8006A9520 /* celon-compassTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		DFD85DD8306D49A3009DE921 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF41E133308CA0B8006A9520 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -134,7 +194,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EF41E131308CA0B8006A9520 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		EF41E13A308CA0B8006A9520 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DFD85DD9306D49A3009DE921 /* celon-compass */;
+			targetProxy = EF41E139308CA0B8006A9520 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		DFD85DE3306D49A5009DE921 /* Debug */ = {
@@ -265,9 +340,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "Celon Compass uses Face ID to keep your trips secure.";
+				INFOPLIST_KEY_CFBundleDisplayName = WanderLanka;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "WanderLanka uses Face ID to keep your trips secure.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_BackgroundColor = LaunchBackground;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -297,9 +374,11 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "Celon Compass uses Face ID to keep your trips secure.";
+				INFOPLIST_KEY_CFBundleDisplayName = WanderLanka;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "WanderLanka uses Face ID to keep your trips secure.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_BackgroundColor = LaunchBackground;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -320,6 +399,48 @@
 			};
 			name = Release;
 		};
+		EF41E13B308CA0B8006A9520 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "nibm.celon-compassTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/celon-compass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/celon-compass";
+			};
+			name = Debug;
+		};
+		EF41E13C308CA0B8006A9520 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "nibm.celon-compassTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/celon-compass.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/celon-compass";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -337,6 +458,15 @@
 			buildConfigurations = (
 				DFD85DE6306D49A5009DE921 /* Debug */,
 				DFD85DE7306D49A5009DE921 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EF41E13D308CA0B8006A9520 /* Build configuration list for PBXNativeTarget "celon-compassTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF41E13B308CA0B8006A9520 /* Debug */,
+				EF41E13C308CA0B8006A9520 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
