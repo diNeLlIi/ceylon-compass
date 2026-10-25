@@ -6,7 +6,7 @@
 //  no impact on Core Data, trips, notes and memories 
 //
 
-import Foundation
+internal import Foundation
 
 nonisolated protocol CacheManaging: Sendable {
     func totalSize() async -> Int64

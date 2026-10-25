@@ -2,8 +2,7 @@
 //  Destination+CoreDataClass.swift
 //  celon-compass
 //
-
-import Foundation
+internal import Foundation
 import CoreData
 
 @objc(Destination)

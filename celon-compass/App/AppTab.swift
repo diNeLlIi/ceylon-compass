@@ -4,7 +4,7 @@
 //
 //
 
-import Foundation
+internal import Foundation
 
 enum AppTab: String, CaseIterable, Identifiable, Hashable {
     case explore

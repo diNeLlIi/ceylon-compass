@@ -5,7 +5,7 @@
 //  Gate for irreversible actions:cancelled or failed prompt never fall through to a delete
 //
 
-import Foundation
+internal import Foundation
 
 @MainActor
 struct DestructiveActionGuard {

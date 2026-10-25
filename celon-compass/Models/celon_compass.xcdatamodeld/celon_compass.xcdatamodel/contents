@@ -60,5 +60,10 @@
         <attribute name="destinationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="fetchedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="destinationID"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
 </model>

@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-import Foundation
+internal import Foundation
 import CoreData
 
 extension Itinerary {

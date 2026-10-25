@@ -5,7 +5,7 @@
 //  User preferences shown in Settings - Preferences
 //
 
-import Foundation
+internal import Foundation
 import Observation
 
 enum TemperatureUnit: String, CaseIterable, Identifiable {
