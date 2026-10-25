@@ -8,8 +8,10 @@
 import CoreData
 
 enum CoreDataSync {
-    static func upsert(_ dtos: [DestinationDTO]) throws {
-        let context = PersistenceController.shared.container.viewContext
+    static func upsert(
+        _ dtos: [DestinationDTO],
+        context: NSManagedObjectContext = PersistenceController.shared.container.viewContext
+    ) throws {
         for dto in dtos {
             let request = Destination.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", dto.id)
@@ -28,8 +30,7 @@ enum CoreDataSync {
         try context.save()
     }
 
-    static func fetchAll() -> [Destination] {
-        let context = PersistenceController.shared.container.viewContext
+    static func fetchAll(context: NSManagedObjectContext = PersistenceController.shared.container.viewContext) -> [Destination] {
         let request = Destination.fetchRequest()
         return (try? context.fetch(request)) ?? []
     }

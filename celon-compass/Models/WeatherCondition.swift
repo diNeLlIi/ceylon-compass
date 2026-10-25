@@ -16,4 +16,13 @@ enum WeatherCondition: String, Codable, CaseIterable {
         default: return .cloudy
         }
     }
+
+    var symbolName: String {
+        switch self {
+        case .clear: return "sun.max.fill"
+        case .cloudy: return "cloud.fill"
+        case .rain: return "cloud.rain.fill"
+        case .storm: return "cloud.bolt.rain.fill"
+        }
+    }
 }

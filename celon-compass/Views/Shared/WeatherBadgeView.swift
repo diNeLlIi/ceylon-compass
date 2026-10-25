@@ -1,9 +1,6 @@
 //
 //  WeatherBadgeView.swift
 //  celon-compass
-//
-
-//
 
 import SwiftUI
 
@@ -15,29 +12,34 @@ struct WeatherBadgeView: View {
             Image(systemName: symbolName)
             if let forecast {
                 Text("\(Int(forecast.high.rounded()))°")
+
+                if forecast.rainProbability > 0 {
+                    Image(systemName: "drop.fill")
+                        .font(.system(size: 8))
+                    Text("\(forecast.rainProbability)%")
+                }
             }
         }
         .font(.caption.weight(.semibold))
         .foregroundStyle(.white)
         .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(.black.opacity(0.45), in: Capsule())
+        .padding(.vertical, 5)
+        .background(.ultraThinMaterial.opacity(0.8), in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.15), lineWidth: 0.5))
         .accessibilityLabel(accessibilityLabel)
     }
 
     private var symbolName: String {
-        guard let condition = forecast?.condition else { return "cloud.slash" }
-        switch condition {
-        case .clear: return "sun.max.fill"
-        case .cloudy: return "cloud.fill"
-        case .rain: return "cloud.rain.fill"
-        case .storm: return "cloud.bolt.rain.fill"
-        }
+        forecast?.condition.symbolName ?? "cloud.slash"
     }
 
     private var accessibilityLabel: String {
         guard let forecast else { return "Weather unavailable" }
-        return "\(forecast.condition.rawValue.capitalized), \(Int(forecast.high.rounded())) degrees"
+        var label = "\(forecast.condition.rawValue.capitalized), \(Int(forecast.high.rounded())) degrees"
+        if forecast.rainProbability > 0 {
+            label += ", \(forecast.rainProbability) percent chance of rain"
+        }
+        return label
     }
 }
 

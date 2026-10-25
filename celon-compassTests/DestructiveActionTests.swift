@@ -177,9 +177,11 @@ struct AccountDeletionTests {
 
     @Test func successDeletesRemoteThenWipesLocalData() async throws {
         let trip = try TestStore.makeTrip()
-        let destination = Destination(context: TestStore.context)
-        destination.id = UUID()
-        destination.isFavourite = true
+        let destinationId = UUID()
+        let favourite = Favourite(context: TestStore.context)
+        favourite.id = UUID()
+        favourite.destinationId = destinationId
+        favourite.createdAt = Date()
         try TestStore.context.save()
         let recorder = Recorder()
 
@@ -188,6 +190,6 @@ struct AccountDeletionTests {
         #expect(recorder.remoteDeleteCalls == 1)
         #expect(recorder.afterDeletionCalls == 1)
         #expect(try TestStore.tripCount(trip) == 0)
-        #expect(destination.isFavourite == false)
+        #expect(try TestStore.count("Favourite", where: "destinationId == %@", destinationId as CVarArg) == 0)
     }
 }

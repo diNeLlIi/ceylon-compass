@@ -41,16 +41,11 @@ struct AccountService {
 
     private func wipeUserData() throws {
         do {
-            for entityName in ["Itinerary", "ItineraryStop", "TravelNote", "VisitRecord", "WeatherSnapshot"] {
+            for entityName in ["Itinerary", "ItineraryStop", "TravelNote", "VisitRecord", "WeatherSnapshot", "Favourite"] {
                 let request = NSFetchRequest<NSManagedObject>(entityName: entityName)
                 for object in try context.fetch(request) {
                     context.delete(object)
                 }
-            }
-            // destinations are the seeded catalogue
-            //only clear the user's favourite destinations
-            for destination in try context.fetch(Destination.fetchRequest()) {
-                destination.isFavourite = false
             }
             try context.save()
         } catch {

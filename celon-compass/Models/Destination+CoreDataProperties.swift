@@ -21,7 +21,6 @@ extension Destination {
     @NSManaged public var district: String?
     @NSManaged public var descriptionText: String?
     @NSManaged public var imageURL: String?
-    @NSManaged public var isFavourite: Bool
     @NSManaged public var stops: NSSet?
     @NSManaged public var visitRecords: NSSet?
 
