@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-internal import Foundation
+import Foundation
 
 enum DestinationCategory: String, CaseIterable, Identifiable {
     case all = "All"

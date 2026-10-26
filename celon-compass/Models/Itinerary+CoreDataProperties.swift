@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-internal import Foundation
+import Foundation
 import CoreData
 
 extension Itinerary {
@@ -18,6 +18,9 @@ extension Itinerary {
     @NSManaged public var endDate: Date?
     @NSManaged public var createdAt: Date?
     @NSManaged public var status: String?
+    @NSManaged public var originName: String?
+    @NSManaged public var originLat: Double
+    @NSManaged public var originLon: Double
     @NSManaged public var stops: NSSet?
 
 }

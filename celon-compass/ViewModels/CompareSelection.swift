@@ -2,12 +2,11 @@
 //  CompareSelection.swift
 //  celon-compass
 //
-//  Transient compare-mode selection state for Explore. Not persisted — reset
-//  whenever compare mode is toggled off.
+//  Transient compare-mode selection state for Explore
 //
 
 import Observation
-internal import Foundation
+import Foundation
 
 @Observable
 final class CompareSelection {
@@ -32,7 +31,6 @@ final class CompareSelection {
         }
     }
 
-    // No-ops at the minimum floor so a comparison in progress can never drop below 2.
     func remove(_ id: UUID) {
         guard count > Self.minCount else { return }
         orderedIds.removeAll { $0 == id }

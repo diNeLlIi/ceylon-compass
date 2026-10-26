@@ -26,26 +26,30 @@ struct FavouritesView: View {
                 )
                 .padding(.top, 80)
             } else {
-                Text("\(destinations.count) \(destinations.count == 1 ? "place" : "places")")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    .padding(.top, 8)
+//                Text("\(destinations.count) \(destinations.count == 1 ? "place" : "places")")
+//                    .font(.subheadline)
+//                    .foregroundStyle(.secondary)
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .padding(.horizontal)
+//                    .padding(.top, 8)
 
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(destinations, id: \.id) { destination in
-                        DestinationCardView(
-                            destination: destination,
-                            forecast: forecasts[destination.id ?? UUID()]?.first,
-                            favouritesStore: favouritesStore
-                        )
+                        NavigationLink(value: destination) {
+                            DestinationCardView(
+                                destination: destination,
+                                forecast: forecasts[destination.id ?? UUID()]?.first,
+                                favouritesStore: favouritesStore
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 16)
             }
         }
+        .background(AppBrand.canvas)
         .navigationTitle("Favourites")
     }
 }

@@ -5,7 +5,7 @@
 //  Remembers when destinations were last refreshed from the server
 //
 
-internal import Foundation
+import Foundation
 
 struct SyncStatusStore {
     static let key = "lastSyncedAt"

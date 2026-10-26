@@ -4,7 +4,7 @@
 //
 
 import Combine
-internal import Foundation
+import Foundation
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
@@ -56,17 +56,6 @@ final class ExploreViewModel: ObservableObject {
         destinations
             .filter { $0.id != todaysPick?.id && forecast(for: $0) != nil }
             .sorted { weatherScore(for: $0) < weatherScore(for: $1) }
-    }
-
-    var sunnyCount: Int {
-        destinations.filter { forecast(for: $0)?.condition == .clear }.count
-    }
-
-    var rainyCount: Int {
-        destinations.filter { destination in
-            let condition = forecast(for: destination)?.condition
-            return condition == .rain || condition == .storm
-        }.count
     }
 
     func forecast(for destination: Destination) -> DayForecast? {

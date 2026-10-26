@@ -32,19 +32,25 @@
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="originLat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="originLon" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="originName" optional="YES" attributeType="String"/>
         <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="stops" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ItineraryStop" inverseName="itinerary" inverseEntity="ItineraryStop"/>
     </entity>
     <entity name="ItineraryStop" representedClassName="ItineraryStop" syncable="YES">
+        <attribute name="conflictKind" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="distanceOffRoute" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="hasConflict" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="poiCategory" optional="YES" attributeType="String"/>
         <attribute name="poiLatitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="poiLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="poiName" optional="YES" attributeType="String"/>
-        <attribute name="poiSource" optional="YES" attributeType="String"/>
+        <attribute name="poiSource" optional="YES" attributeType="String" defaultValueString="catalog"/>
         <attribute name="sortOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="travelNotes" optional="YES" attributeType="String"/>
         <relationship name="destination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Destination" inverseName="stops" inverseEntity="Destination"/>

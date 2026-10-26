@@ -127,7 +127,7 @@ struct SettingsView: View {
                 isConfirmingClear = true
             } label: {
                 SettingsRow(
-                    title: "Clear cached maps & photos",
+                    title: "Clear cache",
                     icon: "trash",
                     tint: AppBrand.destructive
                 ) {

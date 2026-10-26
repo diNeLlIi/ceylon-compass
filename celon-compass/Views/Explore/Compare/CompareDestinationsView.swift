@@ -46,11 +46,11 @@ struct CompareDestinationsView: View {
             }
             .padding(.vertical)
         }
+        .background(AppBrand.canvas)
         .navigationTitle("Compare destinations")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: selection.count) {
-            // Dropping below the comparable minimum (e.g. after removing a chip) means
-            // there's nothing meaningful left to show.
+            
             if selection.count < CompareSelection.minCount {
                 dismiss()
             }

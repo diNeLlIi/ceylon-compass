@@ -4,7 +4,7 @@
 //
 //
 
-internal import Foundation
+import Foundation
 
 struct OpenMeteoResponse: Codable {
     struct Daily: Codable {

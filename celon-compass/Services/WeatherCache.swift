@@ -5,7 +5,7 @@
 
 
 import CoreData
-internal import Foundation
+import Foundation
 
 enum WeatherCache {
     static func freshForecasts(

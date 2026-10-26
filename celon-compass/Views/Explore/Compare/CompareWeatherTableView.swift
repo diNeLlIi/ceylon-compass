@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-internal import Foundation
+import Foundation
 
 struct CompareWeatherTableView: View {
     let destinations: [Destination]

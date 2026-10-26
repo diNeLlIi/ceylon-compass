@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-internal import Foundation
+import Foundation
 import CoreData
 
 extension ItineraryStop {
@@ -21,6 +21,9 @@ extension ItineraryStop {
     @NSManaged public var poiLongitude: Double
     @NSManaged public var poiCategory: String?
     @NSManaged public var poiSource: String?
+    @NSManaged public var distanceOffRoute: Double
+    @NSManaged public var hasConflict: Bool
+    @NSManaged public var conflictKind: String?
     @NSManaged public var itinerary: Itinerary?
     @NSManaged public var destination: Destination?
     @NSManaged public var travelNote: TravelNote?

@@ -9,6 +9,7 @@ struct ExploreView: View {
     @State private var isCompareMode = false
     @State private var compareSelection = CompareSelection()
     @State private var showCompare = false
+    @State private var showNavigationTitle = false
 
     private let columns = [
         GridItem(.flexible(), spacing: 12),
@@ -18,7 +19,9 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 16) {
+                    exploreHeader
+
                     if viewModel.isLoading && viewModel.destinations.isEmpty {
                         SkeletonGridView()
                             .padding(.top, 8)
@@ -30,29 +33,25 @@ struct ExploreView: View {
                         )
                         .padding(.top, 40)
                     } else {
-                        heroSection
-
-                        weatherSummary
-
                         CategoryChipsView(selectedCategory: $viewModel.selectedCategory)
 
-                        bestWeatherSection
+                        bentoSection
 
                         destinationsGridSection
                     }
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, 72)
             }
-            .navigationTitle("Explore Sri Lanka")
-            .searchable(text: $viewModel.searchText, prompt: "Search destinations")
+            .background(AppBrand.canvas)
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y > 36
+            } action: { _, isScrolled in
+                showNavigationTitle = isScrolled
+            }
+            .navigationTitle(showNavigationTitle ? "Explore" : "")
+            .navigationBarTitleDisplayMode(.inline)
             .task { await viewModel.load() }
             .refreshable { await viewModel.refresh() }
-            .toolbar {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    favouritesButton
-                    compareModeButton
-                }
-            }
             .safeAreaInset(edge: .bottom) {
                 if isCompareMode {
                     CompareBottomBarView(selection: compareSelection) {
@@ -60,11 +59,23 @@ struct ExploreView: View {
                     }
                 }
             }
+            .overlay(alignment: .bottom) {
+                if !isCompareMode {
+                    searchBar
+                }
+            }
             .navigationDestination(isPresented: $showCompare) {
                 CompareDestinationsView(
                     destinations: viewModel.destinations,
                     forecasts: viewModel.forecasts,
                     selection: compareSelection
+                )
+            }
+            .navigationDestination(for: Destination.self) { destination in
+                DestinationDetailView(
+                    destination: destination,
+                    forecasts: viewModel.forecasts[destination.id ?? UUID()] ?? [],
+                    favouritesStore: viewModel.favouritesStore
                 )
             }
             .onChange(of: isCompareMode) {
@@ -75,7 +86,21 @@ struct ExploreView: View {
         }
     }
 
-    
+    private var exploreHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("Explore")
+                .font(.largeTitle.bold())
+
+            Spacer()
+
+            HStack(spacing: 10) {
+                favouritesButton
+                compareModeButton
+            }
+        }
+        .padding(.horizontal)
+    }
+
     //Compare Mode
 
     private var compareModeButton: some View {
@@ -127,77 +152,60 @@ struct ExploreView: View {
     }
 
 
+    private var searchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(Color(.darkGray))
+            TextField("", text: $viewModel.searchText, prompt: Text("Search destinations").foregroundStyle(Color(.darkGray)))
+                .font(.body)
+                .foregroundStyle(Color(.darkGray))
+            if !viewModel.searchText.isEmpty {
+                Button {
+                    viewModel.searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color(.darkGray))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 13)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay(Capsule().stroke(.white.opacity(0.4), lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+
+    private var showBentoSection: Bool {
+        !isCompareMode
+            && viewModel.searchText.isEmpty
+            && viewModel.selectedCategory == .all
+            && viewModel.todaysPick != nil
+    }
+
+    private var bentoRunners: [Destination] {
+        Array(viewModel.bestWeatherDestinations.prefix(2))
+    }
+
+    private var featuredDestinationIDs: Set<UUID> {
+        guard showBentoSection, let pick = viewModel.todaysPick else { return [] }
+        return Set(([pick] + bentoRunners).compactMap(\.id))
+    }
+
     @ViewBuilder
-    private var heroSection: some View {
-        if !isCompareMode, viewModel.searchText.isEmpty, let pick = viewModel.todaysPick {
-            HeroDestinationView(
-                destination: pick,
-                forecast: viewModel.forecast(for: pick),
+    private var bentoSection: some View {
+        if showBentoSection, let pick = viewModel.todaysPick {
+            BestWeatherBentoView(
+                topPick: pick,
+                runners: bentoRunners,
+                forecasts: viewModel.forecasts,
                 favouritesStore: viewModel.favouritesStore
             )
         }
     }
-
-    //Weather Summary
-    @ViewBuilder
-    private var weatherSummary: some View {
-        if !viewModel.forecasts.isEmpty, viewModel.searchText.isEmpty {
-            WeatherSummaryView(
-                sunnyCount: viewModel.sunnyCount,
-                rainyCount: viewModel.rainyCount,
-                totalCount: viewModel.destinations.count
-            )
-        }
-    }
-
-
-    //Best Weather
-
-    private var showBestWeatherSection: Bool {
-        !isCompareMode
-            && viewModel.searchText.isEmpty
-            && viewModel.selectedCategory == .all
-            && !viewModel.bestWeatherDestinations.isEmpty
-    }
-
-    private var bestWeatherCarouselDestinations: [Destination] {
-        Array(viewModel.bestWeatherDestinations.prefix(5))
-    }
-
-    // Destinations already surfaced in the hero card
-    //  grid below doesn't repeat them
-    private var featuredDestinationIDs: Set<UUID> {
-        guard showBestWeatherSection else { return [] }
-        return Set(bestWeatherCarouselDestinations.compactMap(\.id))
-    }
-
-    @ViewBuilder
-    private var bestWeatherSection: some View {
-        if showBestWeatherSection {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Label("Best Weather Now", systemImage: "sun.max.fill")
-                        .font(.headline)
-                    Spacer()
-                }
-                .padding(.horizontal)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(bestWeatherCarouselDestinations, id: \.id) { destination in
-                            DestinationFeatureCardView(
-                                destination: destination,
-                                forecast: viewModel.forecast(for: destination),
-                                favouritesStore: viewModel.favouritesStore
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-            }
-        }
-    }
-
 
     //Destinations Grid
 
@@ -219,19 +227,29 @@ struct ExploreView: View {
             let items = gridDestinations
             if !items.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("\(items.count) \(items.count == 1 ? "place" : "places")")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
+//                    Text("\(items.count) \(items.count == 1 ? "place" : "places")")
+//                        .font(.subheadline)
+//                        .foregroundStyle(.secondary)
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                        .padding(.horizontal)
 
                     LazyVGrid(columns: columns, spacing: 14) {
                         ForEach(items, id: \.id) { destination in
-                            DestinationCardView(
-                                destination: destination,
-                                forecast: viewModel.forecast(for: destination),
-                                compareMode: compareMode(for: destination)
-                            )
+                            if isCompareMode {
+                                DestinationCardView(
+                                    destination: destination,
+                                    forecast: viewModel.forecast(for: destination),
+                                    compareMode: compareMode(for: destination)
+                                )
+                            } else {
+                                NavigationLink(value: destination) {
+                                    DestinationCardView(
+                                        destination: destination,
+                                        forecast: viewModel.forecast(for: destination)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                     .padding(.horizontal)

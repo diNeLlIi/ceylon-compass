@@ -5,7 +5,7 @@
 //  Orchestrates the Settings screen: refresh, guarded cache clearing, notification permission
 //
 
-internal import Foundation
+import Foundation
 import Observation
 
 @MainActor

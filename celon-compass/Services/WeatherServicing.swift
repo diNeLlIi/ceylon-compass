@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-internal import Foundation
+import Foundation
 
 protocol WeatherServicing {
     @MainActor

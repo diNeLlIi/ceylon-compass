@@ -5,7 +5,7 @@
 //
 //
 
-internal import Foundation
+import Foundation
 
 struct BestWindow: Equatable {
     let days: [Date]   
@@ -25,9 +25,10 @@ enum BestWindowCalculator {
 
     static func bestWindow(
         forecasts: [UUID: [DayForecast]],
-        minimumWindowLength: Int = 2
+        minimumWindowLength: Int = 2,
+        minimumDestinations: Int = 2
     ) -> BestWindow? {
-        guard forecasts.count >= 2 else { return nil }
+        guard forecasts.count >= minimumDestinations else { return nil }
 
         // Sorted intersection of dates present in every destination's forecasts.
         let calendar = Calendar.current

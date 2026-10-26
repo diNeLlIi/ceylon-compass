@@ -3,7 +3,7 @@
 //  celon-compass
 //
 
-internal import Foundation
+import Foundation
 
 struct DayForecast: Codable, Identifiable {
     var id: Date { date }

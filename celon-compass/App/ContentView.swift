@@ -9,14 +9,14 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @State private var selection: AppTab = .trips
+    @State private var router = TabRouter()
 
     init() {
         Self.configureTabBarAppearance()
     }
 
     var body: some View {
-        TabView(selection: $selection) {
+        TabView(selection: $router.selection) {
             Tab(AppTab.explore.title, systemImage: AppTab.explore.symbol, value: AppTab.explore) {
                 ExploreView()
             }
@@ -34,6 +34,7 @@ struct ContentView: View {
             }
         }
         .tint(AppBrand.link)
+        .environment(router)
         .task {
             try? await AuthService.shared.signInAnonymouslyIfNeeded()
             try? await CatalogSeeder.seedIfNeeded()

@@ -4,7 +4,7 @@
 //
 
 import CoreData
-internal import Foundation
+import Foundation
 
 final class WeatherService: WeatherServicing {
     private let session: URLSession
