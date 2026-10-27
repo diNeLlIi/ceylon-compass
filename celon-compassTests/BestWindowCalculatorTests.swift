@@ -58,8 +58,7 @@ struct BestWindowCalculatorTests {
     }
 
     @Test func tieBreaksByLongerWindowThenEarlierStart() {
-        // Every day identical badness across a 4-day overlap - every window ties on score;
-        // the longest window (the full 4 days, starting at day 0) must win.
+        
         func series() -> [DayForecast] {
             (0..<4).map { forecast(dayOffset: $0, condition: .cloudy, rain: 20) }
         }
@@ -73,6 +72,51 @@ struct BestWindowCalculatorTests {
 
         #expect(window != nil)
         #expect(Set(window!.days) == expectedDays)
+    }
+
+    @Test func scoreReturnsIdealBandForClearLowRainWindow() {
+        let id = UUID()
+        let series: [DayForecast] = (0..<5).map { offset in
+            forecast(dayOffset: offset, condition: .clear, rain: 5)
+        }
+        let days = (0..<5).map(day)
+        let result = BestWindowCalculator.score(destinationId: id, forecasts: series, over: days)
+
+        #expect(result != nil)
+        #expect(result!.score >= Band.idealThreshold)
+        #expect(result!.band == .ideal)
+    }
+
+    @Test func scoreReturnsFairBandForStormyRainyWindow() {
+        let id = UUID()
+        let series: [DayForecast] = (0..<4).map { offset in
+            forecast(dayOffset: offset, condition: .storm, rain: 90)
+        }
+        let days = (0..<4).map(day)
+        let result = BestWindowCalculator.score(destinationId: id, forecasts: series, over: days)
+
+        #expect(result != nil)
+        #expect(result!.band == .fair)
+    }
+
+    @Test func scoreIgnoresDaysOutsideTheWindow() {
+        let id = UUID()
+        let good: [DayForecast] = (0..<3).map { forecast(dayOffset: $0, condition: .clear, rain: 5) }
+        let bad: [DayForecast] = (5..<8).map { forecast(dayOffset: $0, condition: .storm, rain: 95) }
+        let series = good + bad
+        let scopedDays = (0..<3).map(day)
+
+        let result = BestWindowCalculator.score(destinationId: id, forecasts: series, over: scopedDays)
+
+        #expect(result?.evaluatedDayCount == 3)
+        #expect(result!.band == .ideal)
+    }
+
+    @Test func bandThresholdBoundariesAreInclusiveOnTheLowSide() {
+        #expect(Band.of(Band.idealThreshold) == .ideal)
+        #expect(Band.of(Band.idealThreshold - 1) == .good)
+        #expect(Band.of(Band.goodThreshold) == .good)
+        #expect(Band.of(Band.goodThreshold - 1) == .fair)
     }
 
     @Test func fallsBackToTheLeastBadWindowWhenNothingIsTrulyClear() {

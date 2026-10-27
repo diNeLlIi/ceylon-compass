@@ -8,13 +8,54 @@
 import Foundation
 
 struct BestWindow: Equatable {
-    let days: [Date]   
+    let days: [Date]
     let score: Double
     let isAllClear: Bool
 }
 
+enum Band: String, Equatable {
+    case ideal, good, fair
+
+    static let idealThreshold = 85
+    static let goodThreshold = 70
+
+    static func of(_ score: Int) -> Band {
+        if score >= idealThreshold { return .ideal }
+        if score >= goodThreshold { return .good }
+        return .fair
+    }
+
+    var displayName: String {
+        switch self {
+        case .ideal: return "Ideal"
+        case .good: return "Good"
+        case .fair: return "Fair"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .ideal: return "sun.max.fill"
+        case .good: return "sun.min.fill"
+        case .fair: return "cloud.fill"
+        }
+    }
+}
+
+struct DestinationWeatherScore: Equatable, Identifiable {
+    let destinationId: UUID
+    let score: Int
+    let band: Band
+    let avgHigh: Double
+    let avgRainPct: Int
+    let avgSunHours: Double
+    let evaluatedDayCount: Int
+
+    var id: UUID { destinationId }
+}
+
 enum BestWindowCalculator {
-    private static func conditionPenalty(_ condition: WeatherCondition) -> Double {
+    static func conditionPenalty(_ condition: WeatherCondition) -> Double {
         switch condition {
         case .clear: return 0
         case .cloudy: return 10
@@ -30,7 +71,6 @@ enum BestWindowCalculator {
     ) -> BestWindow? {
         guard forecasts.count >= minimumDestinations else { return nil }
 
-        // Sorted intersection of dates present in every destination's forecasts.
         let calendar = Calendar.current
         var dateSets: [Set<DateComponents>] = []
         var forecastsByDay: [UUID: [DateComponents: DayForecast]] = [:]
@@ -95,5 +135,50 @@ enum BestWindowCalculator {
         let days = best.range.map { calendar.date(from: sortedDays[$0])! }
         let allClear = best.range.allSatisfy { isAllClear(for: sortedDays[$0]) }
         return BestWindow(days: days, score: best.score, isAllClear: allClear)
+    }
+
+    // Scopes bestWindow to a specific set of days (the active CompareWindow).
+    static func bestWindow(
+        forecasts: [UUID: [DayForecast]],
+        inDays days: [Date],
+        minimumWindowLength: Int = 2,
+        minimumDestinations: Int = 2
+    ) -> BestWindow? {
+        let calendar = Calendar.current
+        let allowed = Set(days.map { calendar.dateComponents([.year, .month, .day], from: $0) })
+        let scoped = forecasts.mapValues { entries in
+            entries.filter { allowed.contains(calendar.dateComponents([.year, .month, .day], from: $0.date)) }
+        }
+        return bestWindow(forecasts: scoped, minimumWindowLength: minimumWindowLength, minimumDestinations: minimumDestinations)
+    }
+
+    // Per-destination weather score over an explicit day set: the metric powering the ranked list
+    static func score(
+        destinationId: UUID,
+        forecasts: [DayForecast],
+        over days: [Date]
+    ) -> DestinationWeatherScore? {
+        let calendar = Calendar.current
+        let allowed = Set(days.map { calendar.dateComponents([.year, .month, .day], from: $0) })
+        let scoped = forecasts.filter { allowed.contains(calendar.dateComponents([.year, .month, .day], from: $0.date)) }
+        guard !scoped.isEmpty else { return nil }
+
+        let count = Double(scoped.count)
+        let badness = scoped.reduce(0.0) { $0 + Double($1.rainProbability) + conditionPenalty($1.condition) } / count
+        let rawScore = (100 - badness).rounded()
+        let clampedScore = Int(max(0, min(100, rawScore)))
+        let avgHigh = scoped.reduce(0.0) { $0 + $1.high } / count
+        let avgRainPct = Int((scoped.reduce(0.0) { $0 + Double($1.rainProbability) } / count).rounded())
+        let avgSunHours = scoped.reduce(0.0) { $0 + $1.sunHours } / count
+
+        return DestinationWeatherScore(
+            destinationId: destinationId,
+            score: clampedScore,
+            band: .of(clampedScore),
+            avgHigh: avgHigh,
+            avgRainPct: avgRainPct,
+            avgSunHours: avgSunHours,
+            evaluatedDayCount: scoped.count
+        )
     }
 }

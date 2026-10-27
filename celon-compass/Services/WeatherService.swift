@@ -79,9 +79,10 @@ final class WeatherService: WeatherServicing {
         components.queryItems = [
             URLQueryItem(name: "latitude", value: destinations.map { String($0.latitude) }.joined(separator: ",")),
             URLQueryItem(name: "longitude", value: destinations.map { String($0.longitude) }.joined(separator: ",")),
-            URLQueryItem(name: "daily", value: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,weathercode"),
+            URLQueryItem(name: "daily", value: "temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,weathercode,sunshine_duration,sunrise,sunset"),
+            URLQueryItem(name: "hourly", value: "temperature_2m,precipitation_probability,weathercode"),
             URLQueryItem(name: "timezone", value: "auto"),
-            URLQueryItem(name: "forecast_days", value: "7")
+            URLQueryItem(name: "forecast_days", value: "14")
         ]
         guard let url = components.url else {
             throw WeatherError.network(URLError(.badURL))
