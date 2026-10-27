@@ -81,4 +81,15 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="GemQueryCache" representedClassName="GemQueryCache" syncable="YES">
+        <attribute name="cacheKey" optional="YES" attributeType="String"/>
+        <attribute name="fetchedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="payload" optional="YES" attributeType="Binary"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="cacheKey"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
 </model>

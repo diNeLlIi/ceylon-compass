@@ -63,38 +63,97 @@ final class ItineraryViewModel: ObservableObject {
         let suggestedDateIsClear: Bool
     }
 
-    func banner(from stops: [ItineraryStop]) -> Banner? {
-        let sections = daySections(from: stops)
-        guard let section = sections.first(where: { section in
-            !dismissedConflictDates.contains(section.date) && section.stops.contains { $0.hasConflict }
+    struct DoubleBookedNotice {
+        let title: String
+        let message: String
+        let date: Date
+        let stopToMove: ItineraryStop
+        let suggestedDate: Date
+    }
+
+    private func suggestedDate(after stops: [ItineraryStop], from day: Date) -> Date {
+        let lastDate = stops.compactMap(\.date).max() ?? day
+        return Calendar.current.date(byAdding: .day, value: 1, to: lastDate) ?? lastDate
+    }
+
+    
+    private static let urgentConflictPriority: [String: Int] = [
+        "stormRisk": 0,
+        "travelTime": 1
+    ]
+
+    func attentionBanner(from stops: [ItineraryStop]) -> Banner? {
+        let conflicted = stops.filter { stop in
+            guard stop.hasConflict,
+                  let kind = stop.conflictKind, Self.urgentConflictPriority[kind] != nil,
+                  let date = stop.date
+            else { return false }
+            return !dismissedConflictDates.contains(Calendar.current.startOfDay(for: date))
+        }
+        guard let stopToMove = conflicted.min(by: {
+            let lhs = Self.urgentConflictPriority[$0.conflictKind ?? ""] ?? .max
+            let rhs = Self.urgentConflictPriority[$1.conflictKind ?? ""] ?? .max
+            return lhs < rhs
         }) else { return nil }
 
-        let conflicted = section.stops.filter(\.hasConflict)
-        guard conflicted.count >= 2, let stopToMove = conflicted.last else { return nil }
+        let day = Calendar.current.startOfDay(for: stopToMove.date ?? .distantPast)
+        let dayText = day.formatted(.dateTime.weekday(.wide).day().month(.wide))
 
-        let names = conflicted.compactMap(\.poiName)
-        let dayText = section.date.formatted(.dateTime.weekday(.wide).day().month(.wide))
-        var message = "\(names.joined(separator: " and ")) are both booked"
-        if let worst = conflicted.compactMap(forecast(for:)).max(by: { $0.rainProbability < $1.rainProbability }),
-           worst.rainProbability >= 50 {
-            message += ", and \(stopToMove.poiName ?? "one stop") has \(worst.rainProbability)% rain"
+        let title: String
+        let message: String
+
+        if stopToMove.conflictKind == "stormRisk" {
+            title = "\(dayText) has storm risk"
+            let name = stopToMove.poiName ?? "This stop"
+            if let destinationID = stopToMove.destination?.id,
+               let dayForecast = forecasts[destinationID]?.first(where: { Calendar.current.isDate($0.date, inSameDayAs: day) }) {
+                message = "\(name) is forecast \(dayForecast.rainProbability)% rain with storm conditions."
+            } else {
+                message = "\(name) is forecast storm conditions."
+            }
+        } else {
+            title = "\(dayText) has a long drive"
+            message = "The drive to \(stopToMove.poiName ?? "this stop") takes longer than the schedule allows between these two days."
         }
-        message += "."
 
-        let lastDate = stops.compactMap(\.date).max() ?? section.date
-        let suggestedDate = Calendar.current.date(byAdding: .day, value: 1, to: lastDate) ?? lastDate
+        let suggested = suggestedDate(after: stops, from: day)
         let suggestedForecast = stopToMove.destination.flatMap { destination -> DayForecast? in
             guard let id = destination.id else { return nil }
-            return forecasts[id]?.first { Calendar.current.isDate($0.date, inSameDayAs: suggestedDate) }
+            return forecasts[id]?.first { Calendar.current.isDate($0.date, inSameDayAs: suggested) }
         }
 
         return Banner(
-            title: "\(dayText) is overloaded",
+            title: title,
             message: message,
+            date: day,
+            stopToMove: stopToMove,
+            suggestedDate: suggested,
+            suggestedDateIsClear: suggestedForecast?.condition == .clear
+        )
+    }
+
+    // The compact "Fix" notice — a same-day scheduling clash, not a hazard, so there's
+    // no "Keep" option: tapping Fix resolves it outright instead of asking the user to
+    // confirm they're happy to live with it
+    func doubleBookedNotice(from stops: [ItineraryStop]) -> DoubleBookedNotice? {
+        let sections = daySections(from: stops)
+        guard let section = sections.first(where: { section in
+            !dismissedConflictDates.contains(section.date) && section.stops.contains { $0.conflictKind == "doubleBooked" }
+        }) else { return nil }
+
+        let conflicted = section.stops.filter { $0.conflictKind == "doubleBooked" }
+        guard conflicted.count >= 2, let stopToMove = conflicted.last else { return nil }
+
+        let names = conflicted.compactMap(\.poiName)
+        let monthDay = section.date.formatted(.dateTime.month(.abbreviated).day())
+        let weekday = section.date.formatted(.dateTime.weekday(.wide))
+
+        return DoubleBookedNotice(
+            title: "Two stops on \(monthDay)",
+            message: "\(names.joined(separator: " and ")) are both scheduled for \(weekday).",
             date: section.date,
             stopToMove: stopToMove,
-            suggestedDate: suggestedDate,
-            suggestedDateIsClear: suggestedForecast?.condition == .clear
+            suggestedDate: suggestedDate(after: stops, from: section.date)
         )
     }
 
@@ -109,6 +168,15 @@ final class ItineraryViewModel: ObservableObject {
 
     func keep(_ banner: Banner) {
         dismissedConflictDates.insert(banner.date)
+    }
+
+    func resolveDoubleBooked(_ notice: DoubleBookedNotice) {
+        do {
+            try repository.moveStop(notice.stopToMove, to: notice.suggestedDate)
+            try repository.recomputeConflicts(for: trip)
+        } catch {
+            errorMessage = "Couldn't move that stop. Try again."
+        }
     }
 
     func reorder(day: DaySection, from source: IndexSet, to destination: Int) {

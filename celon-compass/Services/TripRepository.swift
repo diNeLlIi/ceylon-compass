@@ -9,10 +9,12 @@ import CoreData
 struct TripRepository {
     let context: NSManagedObjectContext
     private let guardian: DestructiveActionGuard
+    private let routing: RoutingServicing
 
-    init(context: NSManagedObjectContext, guardian: DestructiveActionGuard? = nil) {
+    init(context: NSManagedObjectContext, guardian: DestructiveActionGuard? = nil, routing: RoutingServicing = HaversineRoutingService()) {
         self.context = context
         self.guardian = guardian ?? DestructiveActionGuard()
+        self.routing = routing
     }
 
     @discardableResult
@@ -99,6 +101,16 @@ struct TripRepository {
         trip.endDate = dates.max()
     }
 
+    func renameTrip(_ trip: Itinerary, to title: String) throws {
+        trip.title = title
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
     func deleteStop(_ stop: ItineraryStop) throws {
         context.delete(stop)
         do {
@@ -110,14 +122,30 @@ struct TripRepository {
     }
 
    
+    // Priority when a stop is flagged by more than one rule: storm risk, travel-time,same day double booking
     func recomputeConflicts(for trip: Itinerary) throws {
-        let stops = (trip.stops as? Set<ItineraryStop>) ?? []
-        let flaggedIDs = ConflictRules.sameDayStopIDs(Array(stops))
+        let stops = Array((trip.stops as? Set<ItineraryStop>) ?? [])
+        let forecasts = cachedForecasts(for: stops)
+
+        let stormIDs = ConflictRules.flagStormRisk(stops, forecasts: forecasts)
+        let travelTimeIDs = ConflictRules.flagTravelTime(stops, routing: routing)
+        let doubleBookedIDs = ConflictRules.sameDayStopIDs(stops)
+
         for stop in stops {
             guard let id = stop.id else { continue }
-            let isFlagged = flaggedIDs.contains(id)
-            stop.hasConflict = isFlagged
-            stop.conflictKind = isFlagged ? "doubleBooked" : nil
+            if stormIDs.contains(id) {
+                stop.hasConflict = true
+                stop.conflictKind = "stormRisk"
+            } else if travelTimeIDs.contains(id) {
+                stop.hasConflict = true
+                stop.conflictKind = "travelTime"
+            } else if doubleBookedIDs.contains(id) {
+                stop.hasConflict = true
+                stop.conflictKind = "doubleBooked"
+            } else {
+                stop.hasConflict = false
+                stop.conflictKind = nil
+            }
         }
         do {
             try context.save()
@@ -125,5 +153,18 @@ struct TripRepository {
             context.rollback()
             throw error
         }
+    }
+
+    // Reads whatever's already cached (3h TTL, same as WeatherService):never fetches,
+    // recomputeConflicts stays synchronous and doesn't hit the network
+    private func cachedForecasts(for stops: [ItineraryStop]) -> [UUID: [DayForecast]] {
+        let destinationIDs = Set(stops.compactMap { $0.destination?.id })
+        var result: [UUID: [DayForecast]] = [:]
+        for id in destinationIDs {
+            if let forecasts = WeatherCache.freshForecasts(for: id, ttl: 3 * 3600, context: context) {
+                result[id] = forecasts
+            }
+        }
+        return result
     }
 }

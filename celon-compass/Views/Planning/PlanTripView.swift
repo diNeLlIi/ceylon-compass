@@ -2,7 +2,6 @@
 //  PlanTripView.swift
 //  celon-compass
 //
-
 //
 
 import SwiftUI
@@ -153,16 +152,16 @@ struct PlanTripView: View {
             }
             .padding(.horizontal)
 
-            if viewModel.stopsWithinRadius.isEmpty {
+            if viewModel.catalogStopsWithinRadius.isEmpty {
                 Text("No catalog destinations within \(Int(viewModel.committedRadiusKm)) km of this route.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal)
             } else {
                 VStack(spacing: 10) {
-                    ForEach(Array(viewModel.stopsWithinRadius.enumerated()), id: \.element.id) { index, poi in
+                    ForEach(Array(viewModel.catalogStopsWithinRadius.enumerated()), id: \.element.id) { index, poi in
                         HStack(alignment: .top, spacing: 10) {
-                            timelineMarker(index: index, isLast: index == viewModel.stopsWithinRadius.count - 1)
+                            timelineMarker(index: index, isLast: index == viewModel.catalogStopsWithinRadius.count - 1)
                             StopRow(
                                 title: poi.name,
                                 subtitle: subtitle(for: poi),
@@ -219,21 +218,46 @@ struct PlanTripView: View {
             }
             .padding(.horizontal)
 
-            VStack(spacing: 10) {
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundStyle(AppBrand.tealTop)
-                Text("No gems yet")
-                    .font(.subheadline.weight(.semibold))
-                Text("Community-sourced spots along this route are coming soon.")
+            if viewModel.gemStopsWithinRadius.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .font(.title2)
+                        .foregroundStyle(AppBrand.tealTop)
+                    Text(viewModel.isLoadingGems ? "Looking for gems…" : "No gems yet")
+                        .font(.subheadline.weight(.semibold))
+                    Text(
+                        viewModel.isLoadingGems
+                            ? "Checking OpenStreetMap for waterfalls, viewpoints, and temples along this route."
+                            : "Drag the radius slider to search for community-sourced spots along this route."
+                    )
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 28)
+                .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .padding(.horizontal)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(Array(viewModel.gemStopsWithinRadius.enumerated()), id: \.element.id) { index, poi in
+                        HStack(alignment: .top, spacing: 10) {
+                            timelineMarker(index: index, isLast: index == viewModel.gemStopsWithinRadius.count - 1)
+                            StopRow(
+                                title: poi.name,
+                                subtitle: subtitle(for: poi),
+                                forecast: viewModel.forecast(for: poi),
+                                isGem: true,
+                                accessory: .toggle(
+                                    isSelected: viewModel.isSelected(poi),
+                                    onToggle: { viewModel.toggle(poi) }
+                                )
+                            )
+                        }
+                    }
+                }
+                .padding(.horizontal)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 28)
-            .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .padding(.horizontal)
 
             Text("Gem locations via OpenStreetMap contributors")
                 .font(.caption2)
@@ -261,7 +285,7 @@ struct PlanTripView: View {
                 HStack {
                     Text("Create itinerary")
                         .font(.headline)
-                    Image(systemName: "arrow.right")
+                    //Image(systemName: "arrow.right")
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)

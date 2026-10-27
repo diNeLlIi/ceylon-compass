@@ -28,4 +28,14 @@ struct POI: Identifiable, Equatable {
         self.source = .catalog
         self.destination = destination
     }
+
+    
+    init(gem: OSMGem) {
+        self.id = "osm:\(gem.osmId)"
+        self.name = gem.name
+        self.category = gem.category
+        self.coordinate = gem.coordinate
+        self.source = .osm
+        self.destination = nil
+    }
 }

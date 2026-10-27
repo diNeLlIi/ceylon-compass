@@ -14,7 +14,16 @@ enum WeatherCache {
         now: Date = Date(),
         container: NSPersistentContainer = PersistenceController.shared.container
     ) -> [DayForecast]? {
-        let context = container.viewContext
+        freshForecasts(for: destinationID, ttl: ttl, now: now, context: container.viewContext)
+    }
+
+
+    static func freshForecasts(
+        for destinationID: UUID,
+        ttl: TimeInterval,
+        now: Date = Date(),
+        context: NSManagedObjectContext
+    ) -> [DayForecast]? {
         let request = WeatherSnapshot.fetchRequest()
         request.predicate = NSPredicate(format: "destinationID == %@", destinationID as CVarArg)
         request.fetchLimit = 1

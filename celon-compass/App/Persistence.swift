@@ -21,12 +21,25 @@ struct PersistenceController {
         return model
     }()
 
+    static let appGroupIdentifier = "group.diNeLlli.celon-compass.shared"
+
+    private static let sharedStoreURL: URL = {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: appGroupIdentifier
+        ) else {
+            fatalError("App Group '\(appGroupIdentifier)' is not configured for this target")
+        }
+        return containerURL.appendingPathComponent("CeylonCompass.sqlite")
+    }()
+
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "celon_compass", managedObjectModel: Self.model)
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            container.persistentStoreDescriptions.first?.url = Self.sharedStoreURL
         }
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {

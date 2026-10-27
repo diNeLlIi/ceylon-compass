@@ -14,16 +14,26 @@ struct WeatherBadgeView: View {
     let forecast: DayForecast?
     var style: Style = .onImage
 
+    var detailed: Bool = false
+
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: symbolName)
             if let forecast {
                 Text("\(Int(forecast.high.rounded()))°")
 
+                if detailed {
+                    Text(forecast.condition.rawValue.capitalized)
+                }
+
                 if forecast.rainProbability > 0 {
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 8))
-                    Text("\(forecast.rainProbability)%")
+                    if detailed {
+                        Text("· \(forecast.rainProbability)% rain")
+                    } else {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 8))
+                        Text("\(forecast.rainProbability)%")
+                    }
                 }
             }
         }
@@ -98,6 +108,18 @@ struct WeatherBadgeView: View {
             }
         }
         WeatherBadgeView(forecast: nil, style: .onSurface)
+    }
+    .padding()
+    .background(AppBrand.card)
+
+    VStack(alignment: .leading, spacing: 10) {
+        ForEach(WeatherCondition.allCases, id: \.self) { condition in
+            WeatherBadgeView(
+                forecast: DayForecast(date: .now, high: 30, low: 24, rainProbability: 15, uvIndex: 7, condition: condition),
+                style: .onSurface,
+                detailed: true
+            )
+        }
     }
     .padding()
     .background(AppBrand.card)

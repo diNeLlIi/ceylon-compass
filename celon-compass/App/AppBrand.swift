@@ -22,6 +22,7 @@ enum AppBrand {
     static let success = Color(red: 0.180, green: 0.600, blue: 0.360)
     static let destructive = Color(red: 0.700, green: 0.150, blue: 0.120)
     static let destructiveTint = Color(red: 0.984, green: 0.894, blue: 0.878)
+    static let amberTint = Color(red: 0.996, green: 0.942, blue: 0.843)
     static let link = Color(red: 0.055, green: 0.470, blue: 0.520)
 
     static let privacyPolicyURL: URL? = nil

@@ -84,18 +84,27 @@ struct TripHeroCardView: View {
     private func dayChip(date: Date, stop: ItineraryStop?) -> some View {
         let forecast = stop.flatMap(viewModel.forecast(for:))
         let hasConflict = stop?.hasConflict ?? false
-        return VStack(spacing: 2) {
+        let isForecastPending = stop != nil && forecast == nil && !ForecastHorizon.isAvailable(for: date)
+        let chip = VStack(spacing: 2) {
             Text(date.formatted(.dateTime.weekday(.abbreviated)))
                 .font(.system(size: 10, weight: .semibold))
-            Image(systemName: forecast?.condition.symbolName ?? "minus")
+            Image(systemName: isForecastPending ? "clock" : (forecast?.condition.symbolName ?? "minus"))
                 .font(.caption)
-            Text(forecast.map { "\(Int($0.high.rounded()))°" } ?? "–")
+            Text(forecast.map { "\(Int($0.high.rounded()))°" } ?? (isForecastPending ? "soon" : "–"))
                 .font(.system(size: 10, weight: .bold))
         }
         .foregroundStyle(hasConflict ? AppBrand.destructive : (stop == nil ? Color.secondary : Color.primary))
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
         .background(chipBackground(condition: forecast?.condition, hasConflict: hasConflict), in: RoundedRectangle(cornerRadius: 9))
+
+        return Group {
+            if isForecastPending {
+                chip.accessibilityLabel("Forecast not yet available")
+            } else {
+                chip
+            }
+        }
     }
 
     private func chipBackground(condition: WeatherCondition?, hasConflict: Bool) -> Color {

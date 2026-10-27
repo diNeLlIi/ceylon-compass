@@ -14,14 +14,20 @@ struct StopRow: View {
         case none
     }
 
+    enum ConflictSeverity {
+        case none, caution, severe
+    }
+
     let title: String
     var time: String?
     var subtitle: String?
     var note: String?
     var imageURL: URL?
     var forecast: DayForecast?
+    var forecastUnavailableLabel: String?
+    var detailedForecast: Bool = false
     var isGem: Bool = false
-    var hasConflict: Bool = false
+    var conflictSeverity: ConflictSeverity = .none
     var accessory: Accessory = .none
 
     var body: some View {
@@ -57,7 +63,11 @@ struct StopRow: View {
                 }
 
                 if let forecast {
-                    WeatherBadgeView(forecast: forecast, style: .onSurface)
+                    WeatherBadgeView(forecast: forecast, style: .onSurface, detailed: detailedForecast)
+                } else if let forecastUnavailableLabel {
+                    Text(forecastUnavailableLabel)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(conflictSeverity == .severe ? AppBrand.destructive : .secondary)
                 }
 
                 if let note {
@@ -75,9 +85,15 @@ struct StopRow: View {
         .padding(10)
         .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
-            if hasConflict {
+            switch conflictSeverity {
+            case .severe:
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .stroke(AppBrand.destructive, lineWidth: 1.5)
+            case .caution:
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(AppBrand.amber, lineWidth: 1.5)
+            case .none:
+                EmptyView()
             }
         }
     }
@@ -159,7 +175,8 @@ struct StopRow: View {
                 time: "6:40 am",
                 note: "Nine Arch Bridge before the crowds",
                 forecast: stormForecast,
-                hasConflict: true,
+                detailedForecast: true,
+                conflictSeverity: .severe,
                 accessory: .dragHandle
             )
             StopRow(title: "Yala", subtitle: "Wildlife")

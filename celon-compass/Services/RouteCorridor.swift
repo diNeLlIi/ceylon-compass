@@ -41,21 +41,15 @@ enum RouteCorridor {
     static func isWithin(radiusKm: Double, point: Coordinate, from: Coordinate, to: Coordinate) -> Bool {
         offRouteDistanceKm(point: point, from: from, to: to) <= radiusKm
     }
-}
 
-enum ConflictRules {
-    
-    // Flags every stop that shares a calendar day with another stop in the same itinerary
-
-    static func sameDayStopIDs(_ stops: [ItineraryStop], calendar: Calendar = .current) -> Set<UUID> {
-        var byDay: [DateComponents: [UUID]] = [:]
-        for stop in stops {
-            guard let id = stop.id, let date = stop.date else { continue }
-            let components = calendar.dateComponents([.year, .month, .day], from: date)
-            byDay[components, default: []].append(id)
+    static func samplePoints(from: Coordinate, to: Coordinate, count: Int = 5) -> [Coordinate] {
+        guard count > 1 else { return [from, to] }
+        return (0..<count).map { index in
+            let t = Double(index) / Double(count - 1)
+            return Coordinate(
+                latitude: from.latitude + (to.latitude - from.latitude) * t,
+                longitude: from.longitude + (to.longitude - from.longitude) * t
+            )
         }
-        return byDay.values
-            .filter { $0.count > 1 }
-            .reduce(into: Set<UUID>()) { $0.formUnion($1) }
     }
 }

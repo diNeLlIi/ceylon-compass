@@ -14,6 +14,8 @@ final class PlanTripViewModel: ObservableObject {
     let originName = DefaultOrigin.name
 
     @Published private(set) var candidatePOIs: [POI] = []
+    @Published private(set) var gemPOIs: [POI] = []
+    @Published private(set) var isLoadingGems = false
     @Published private(set) var forecasts: [UUID: [DayForecast]] = [:]
     @Published private(set) var selectedPOIIDs: Set<String> = []
     @Published private(set) var committedRadiusKm: Double
@@ -22,16 +24,20 @@ final class PlanTripViewModel: ObservableObject {
 
     private let weatherService: WeatherServicing
     private let routingService: RoutingServicing
+    private let gemService: OverpassServicing
     private let defaultRadiusKm: Double = 25
+    private var gemLoadTask: Task<Void, Never>?
 
     init(
         destination: Destination,
         weatherService: WeatherServicing = WeatherService(),
-        routingService: RoutingServicing = HaversineRoutingService()
+        routingService: RoutingServicing = HaversineRoutingService(),
+        gemService: OverpassServicing = OverpassService()
     ) {
         self.destination = destination
         self.weatherService = weatherService
         self.routingService = routingService
+        self.gemService = gemService
         self.committedRadiusKm = defaultRadiusKm
     }
 
@@ -50,9 +56,17 @@ final class PlanTripViewModel: ObservableObject {
     }
 
     var stopsWithinRadius: [POI] {
-        candidatePOIs.filter {
+        (candidatePOIs + gemPOIs).filter {
             RouteCorridor.isWithin(radiusKm: committedRadiusKm, point: $0.coordinate, from: origin, to: destinationCoordinate)
         }
+    }
+
+    var catalogStopsWithinRadius: [POI] {
+        stopsWithinRadius.filter { $0.source == .catalog }
+    }
+
+    var gemStopsWithinRadius: [POI] {
+        stopsWithinRadius.filter { $0.source == .osm }
     }
 
     var selectedStops: [POI] {
@@ -78,6 +92,24 @@ final class PlanTripViewModel: ObservableObject {
 
     func commitRadius(_ radiusKm: Double) {
         committedRadiusKm = radiusKm
+        gemLoadTask?.cancel()
+        gemLoadTask = Task { [weak self] in
+            await self?.loadGems()
+        }
+    }
+
+    private func loadGems() async {
+        isLoadingGems = true
+        defer { isLoadingGems = false }
+        let fetched = try? await gemService.gems(
+            alongRoute: origin,
+            to: destinationCoordinate,
+            radiusKm: committedRadiusKm,
+            excluding: candidatePOIs
+        )
+        if !Task.isCancelled {
+            gemPOIs = fetched ?? []
+        }
     }
 
     func dismissError() {
@@ -100,9 +132,7 @@ final class PlanTripViewModel: ObservableObject {
         }
     }
 
-    // Writes the fixed Colombo origin into the trip, adds every selected stop
-    // (one calendar day apart, starting tomorrow) plus the destination itself
-    // as the final stop, then recomputes conflicts once.
+   
     @discardableResult
     func createItinerary(context: NSManagedObjectContext) -> Itinerary? {
         let repository = TripRepository(context: context)
