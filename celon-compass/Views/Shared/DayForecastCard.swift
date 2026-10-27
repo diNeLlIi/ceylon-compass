@@ -2,7 +2,7 @@
 //  DayForecastCard.swift
 //  celon-compass
 //
-//  One day in Destination Detail's 7-day forecast strip
+//  One day in Destination Detail's forecast rail
 //
 
 import SwiftUI
@@ -10,60 +10,113 @@ import SwiftUI
 struct DayForecastCard: View {
     let forecast: DayForecast
     var isToday: Bool = false
+    var isBestWindow: Bool = false
 
     var body: some View {
         VStack(spacing: 6) {
+
             Text(isToday ? "Today" : weekdayText)
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .font(.caption2.weight(isToday ? .bold : .semibold))
+                .foregroundStyle(isToday ? AppBrand.navy : Color.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(dayNumberText)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(AppBrand.navy)
+                Text(monthText)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
 
             Image(systemName: forecast.condition.symbolName)
                 .font(.title3)
                 .foregroundStyle(AppBrand.tealTop)
                 .symbolRenderingMode(.hierarchical)
+                .frame(height: 26)
 
-            HStack(spacing: 3) {
+            HStack(spacing: 5) {
                 Text("\(Int(forecast.high.rounded()))°")
-                    .font(.caption.weight(.semibold))
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(AppBrand.navy)
                 Text("\(Int(forecast.low.rounded()))°")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            if forecast.rainProbability > 0 {
-                HStack(spacing: 2) {
-                    Image(systemName: "drop.fill")
-                        .font(.system(size: 8))
-                    Text("\(forecast.rainProbability)%")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.secondary)
+            
+            
+            
+            HStack(spacing: 4) {
+                Image(systemName: "drop.fill")
+                    .font(.system(size: 8))
+                Text("\(forecast.rainProbability)%")
+                    .font(.caption2)
             }
+            .foregroundStyle(.secondary)
+            .opacity(forecast.rainProbability > 0 ? 1 : 0)
         }
-        .frame(width: 64)
-        .padding(.vertical, 10)
-        .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .frame(width: 78)
+        .padding(.vertical, 12)
+        .background(cardFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(isBestWindow ? AppBrand.tealTop : Color.clear, lineWidth: 1.5)
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityText)
+    }
+
+    
+    private var cardFill: Color {
+        isToday ? AppBrand.navy.opacity(0.05) : AppBrand.card
     }
 
     private var weekdayText: String {
         forecast.date.formatted(.dateTime.weekday(.abbreviated))
     }
+
+    private var dayNumberText: String {
+        forecast.date.formatted(.dateTime.day())
+    }
+
+    private var monthText: String {
+        forecast.date.formatted(.dateTime.month(.abbreviated))
+    }
+
+    private var accessibilityText: String {
+        var parts: [String] = [
+            isToday ? "Today" : weekdayText,
+            "\(dayNumberText) \(monthText)",
+            forecast.condition.label,
+            "high \(Int(forecast.high.rounded())), low \(Int(forecast.low.rounded()))"
+        ]
+        if forecast.rainProbability > 0 {
+            parts.append("\(forecast.rainProbability) percent chance of rain")
+        }
+        if isBestWindow {
+            parts.append("recommended day")
+        }
+        return parts.joined(separator: ", ")
+    }
 }
 
 #Preview {
-    ScrollView(.horizontal) {
+    ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 10) {
-            ForEach(0..<7, id: \.self) { offset in
+            ForEach(0..<10, id: \.self) { offset in
                 DayForecastCard(
                     forecast: DayForecast(
                         date: Calendar.current.date(byAdding: .day, value: offset, to: .now) ?? .now,
-                        high: 24 + Double(offset),
-                        low: 16 + Double(offset),
-                        rainProbability: [20, 10, 45, 80, 35, 10, 15][offset],
+                        high: 28 + Double(offset % 4),
+                        low: 22 + Double(offset % 2),
+                        rainProbability: [100, 71, 84, 65, 27, 0, 75, 73, 88, 90][offset],
                         uvIndex: 7,
-                        condition: [.cloudy, .clear, .cloudy, .storm, .cloudy, .clear, .clear][offset]
+                        condition: [.storm, .storm, .rain, .rain, .cloudy, .clear, .rain, .cloudy, .rain, .storm][offset]
                     ),
-                    isToday: offset == 0
+                    isToday: offset == 0,
+                    isBestWindow: offset == 4 || offset == 5
                 )
             }
         }

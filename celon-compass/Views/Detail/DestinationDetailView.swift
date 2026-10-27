@@ -129,33 +129,144 @@ struct DestinationDetailView: View {
     }
 
     private func bannerText(first: Date, last: Date, isAllClear: Bool) -> String {
-        let formatter = Date.FormatStyle().month(.abbreviated).day()
-        let range = first == last
-            ? first.formatted(formatter)
-            : "\(first.formatted(formatter))–\(last.formatted(.dateTime.day()))"
+        let calendar = Calendar.current
+        let range = calendar.isDate(first, inSameDayAs: last)
+            ? first.formatted(.dateTime.day().month(.abbreviated))
+            : "\(first.formatted(.dateTime.day()))–\(last.formatted(.dateTime.day().month(.abbreviated)))"
         let condition = isAllClear ? "Clear" : "Low rain risk"
-        return "Best days this week · \(range) · \(condition)"
+        return "Best days \(scopeLabel(for: first)) · \(range) · \(condition)"
+    }
+
+    // The forecast now runs 14 days, so the window can land outside this week.
+    private func scopeLabel(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        guard let thisWeek = calendar.dateInterval(of: .weekOfYear, for: today)?.start,
+              let target = calendar.dateInterval(of: .weekOfYear, for: date)?.start,
+              let offset = calendar.dateComponents([.weekOfYear], from: thisWeek, to: target).weekOfYear
+        else { return "ahead" }
+
+        switch offset {
+        case 0: return "this week"
+        case 1: return "next week"
+        default: return "ahead"
+        }
     }
 
     @ViewBuilder
     private var forecastStrip: some View {
         if !viewModel.forecasts.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("7-Day Forecast")
-                    .font(.headline)
-                    .padding(.horizontal)
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Forecast")
+                        .font(.headline)
+                    Spacer()
+//                    Text("\(viewModel.forecasts.count) days")
+//                        .font(.caption)
+//                        .foregroundStyle(.secondary)
+//                    Text(viewModel.forecastSpan)
+//                        .font(.caption.weight(.medium))
+//                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(Array(viewModel.forecasts.enumerated()), id: \.element.id) { index, forecast in
-                            DayForecastCard(forecast: forecast, isToday: index == 0)
+                        ForEach(viewModel.forecasts) { forecast in
+                            DayForecastCard(
+                                forecast: forecast,
+                                isToday: Calendar.current.isDateInToday(forecast.date),
+                                isBestWindow: viewModel.isInBestWindow(forecast)
+                            )
                         }
                     }
+                    .scrollTargetLayout()
                     .padding(.horizontal)
                 }
+                .scrollTargetBehavior(.viewAligned)
             }
         }
     }
+
+    
+//    private func weekSection(_ week: ForecastWeek) -> some View {
+//        VStack(alignment: .leading, spacing: 10) {
+//            weekHeader(week)
+//
+//            ScrollView(.horizontal, showsIndicators: false) {
+//                HStack(spacing: 10) {
+//                    ForEach(week.days) { forecast in
+//                        DayForecastCard(
+//                            forecast: forecast,
+//                            isToday: Calendar.current.isDateInToday(forecast.date),
+//                            isBestWindow: viewModel.isInBestWindow(forecast)
+//                        )
+//                    }
+//                }
+//                .padding(.horizontal)
+//            }
+//        }
+//    }
+//
+//    private func weekHeader(_ week: ForecastWeek) -> some View {
+//        HStack(alignment: .center, spacing: 10) {
+//            // Fixed height so every section's indicator is identical, whether
+//            // or not the title row carries a badge.
+//            Capsule()
+//                .fill(week.containsBestWindow ? AppBrand.tealTop : Color(.separator))
+//                .frame(width: 3, height: 38)
+//
+//            VStack(alignment: .leading, spacing: 3) {
+//                HStack(spacing: 8) {
+//                    Text(week.title)
+//                        .font(.subheadline.weight(.bold))
+//                        .foregroundStyle(AppBrand.navy)
+//
+//                    if week.containsBestWindow {
+//                        Text(week.bestDayBadge)
+//                            .font(.system(size: 9, weight: .bold))
+//                            .tracking(0.5)
+//                            .foregroundStyle(AppBrand.tealMid)
+//                            .padding(.horizontal, 6)
+//                            .padding(.vertical, 2)
+//                            .background(AppBrand.tealTop.opacity(0.15), in: Capsule())
+//                    }
+//
+//                    Spacer(minLength: 8)
+//
+//                    Text(week.dateRange)
+//                        .font(.caption.weight(.medium))
+//                        .foregroundStyle(.secondary)
+//                        .layoutPriority(1)
+//                }
+//
+//                HStack(spacing: 5) {
+//                    Image(systemName: week.dominantCondition.symbolName)
+//                        .font(.caption2)
+//                        .symbolRenderingMode(.hierarchical)
+//                    Text(week.dominantCondition.label)
+//                        .font(.caption)
+//                    Text("·")
+//                    Text(week.tempRange)
+//                        .font(.caption)
+//                    Text("·")
+//                    Image(systemName: "drop.fill")
+//                        .font(.system(size: 9))
+//                    Text("\(week.avgRain)%")
+//                        .font(.caption)
+//                }
+//                .foregroundStyle(.secondary)
+//            }
+//        }
+//        .padding(.horizontal)
+//        .accessibilityElement(children: .combine)
+//        .accessibilityLabel(
+//            "\(week.title), \(week.dateRange), \(week.accessibilitySummary)"
+//                + (week.containsBestWindow
+//                    ? ", \(week.bestDayCount) recommended \(week.bestDayCount == 1 ? "day" : "days")"
+//                    : "")
+//        )
+//    }
 
     @ViewBuilder
     private var aboutSection: some View {
@@ -203,14 +314,19 @@ struct DestinationDetailView: View {
     destination.imageURL = "https://upload.wikimedia.org/wikipedia/commons/c/c7/Sigiriya.jpg"
     let favouritesStore = FavouritesStore(context: context)
 
-    let forecasts = (0..<7).map { offset in
+    let rain = [20, 10, 45, 80, 35, 10, 15, 25, 60, 70, 15, 10, 30, 40]
+    let conditions: [WeatherCondition] = [
+        .cloudy, .clear, .cloudy, .storm, .cloudy, .clear, .clear,
+        .cloudy, .rain, .storm, .clear, .clear, .cloudy, .rain
+    ]
+    let forecasts = (0..<14).map { offset in
         DayForecast(
             date: Calendar.current.date(byAdding: .day, value: offset, to: .now) ?? .now,
             high: 24 + Double(offset % 3),
             low: 16 + Double(offset % 3),
-            rainProbability: [20, 10, 45, 80, 35, 10, 15][offset],
+            rainProbability: rain[offset],
             uvIndex: 6,
-            condition: [.cloudy, .clear, .cloudy, .storm, .cloudy, .clear, .clear][offset]
+            condition: conditions[offset]
         )
     }
 
