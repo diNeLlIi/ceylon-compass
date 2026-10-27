@@ -11,6 +11,10 @@ struct FavouritesView: View {
     let forecasts: [UUID: [DayForecast]]
     var favouritesStore: FavouritesStore = .shared
 
+    @State private var isCompareMode = false
+    @State private var compareSelection = CompareSelection()
+    @State private var showCompare = false
+
     private let columns = [
         GridItem(.flexible(), spacing: 12),
         GridItem(.flexible(), spacing: 12)
@@ -26,6 +30,15 @@ struct FavouritesView: View {
                 )
                 .padding(.top, 80)
             } else {
+                if destinations.count >= CompareSelection.minCount {
+                    HStack {
+                        Spacer()
+                        compareModeButton
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 4)
+                }
+
 //                Text("\(destinations.count) \(destinations.count == 1 ? "place" : "places")")
 //                    .font(.subheadline)
 //                    .foregroundStyle(.secondary)
@@ -35,14 +48,23 @@ struct FavouritesView: View {
 
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(destinations, id: \.id) { destination in
-                        NavigationLink(value: destination) {
+                        if isCompareMode {
                             DestinationCardView(
                                 destination: destination,
                                 forecast: forecasts[destination.id ?? UUID()]?.first,
-                                favouritesStore: favouritesStore
+                                favouritesStore: favouritesStore,
+                                compareMode: compareMode(for: destination)
                             )
+                        } else {
+                            NavigationLink(value: destination) {
+                                DestinationCardView(
+                                    destination: destination,
+                                    forecast: forecasts[destination.id ?? UUID()]?.first,
+                                    favouritesStore: favouritesStore
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal)
@@ -51,19 +73,63 @@ struct FavouritesView: View {
         }
         .background(AppBrand.canvas)
         .navigationTitle("Favourites")
+        .safeAreaInset(edge: .bottom) {
+            if isCompareMode {
+                CompareBottomBarView(selection: compareSelection) {
+                    showCompare = true
+                }
+            }
+        }
+        .navigationDestination(isPresented: $showCompare) {
+            CompareDestinationsView(
+                destinations: destinations,
+                forecasts: forecasts,
+                selection: compareSelection
+            )
+        }
+        .onChange(of: isCompareMode) {
+            if !isCompareMode {
+                compareSelection.reset()
+            }
+        }
+    }
+
+    private var compareModeButton: some View {
+        Button {
+            isCompareMode.toggle()
+        } label: {
+            Image(systemName: "sparkles")
+                .foregroundStyle(.white)
+                .padding(8)
+                .background(isCompareMode ? AppBrand.tealMid : AppBrand.tealTop, in: Circle())
+        }
+        .accessibilityLabel(isCompareMode ? "Exit compare mode" : "Compare destinations")
+    }
+
+    private func compareMode(for destination: Destination) -> DestinationCardView.CompareMode {
+        guard let id = destination.id else { return .off }
+        return .selectable(
+            isSelected: compareSelection.isSelected(id),
+            onToggle: { compareSelection.toggle(id) }
+        )
     }
 }
 
 #Preview {
     let context = PersistenceController.preview.container.viewContext
-    let destination = Destination(context: context)
-    destination.id = UUID()
-    destination.name = "Sigiriya"
-    destination.category = "Heritage"
+    let sigiriya = Destination(context: context)
+    sigiriya.id = UUID()
+    sigiriya.name = "Sigiriya"
+    sigiriya.category = "Heritage"
+    let ella = Destination(context: context)
+    ella.id = UUID()
+    ella.name = "Ella"
+    ella.category = "Mountain"
     let favouritesStore = FavouritesStore(context: context)
-    favouritesStore.add(destination.id!)
+    favouritesStore.add(sigiriya.id!)
+    favouritesStore.add(ella.id!)
 
     return NavigationStack {
-        FavouritesView(destinations: [destination], forecasts: [:], favouritesStore: favouritesStore)
+        FavouritesView(destinations: [sigiriya, ella], forecasts: [:], favouritesStore: favouritesStore)
     }
 }

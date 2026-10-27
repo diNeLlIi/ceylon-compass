@@ -4,6 +4,10 @@
 
 import SwiftUI
 
+private enum ExploreRoute: Hashable {
+    case favourites
+}
+
 struct ExploreView: View {
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isCompareMode = false
@@ -78,6 +82,16 @@ struct ExploreView: View {
                     favouritesStore: viewModel.favouritesStore
                 )
             }
+            .navigationDestination(for: ExploreRoute.self) { route in
+                switch route {
+                case .favourites:
+                    FavouritesView(
+                        destinations: viewModel.favouriteDestinations,
+                        forecasts: viewModel.forecasts,
+                        favouritesStore: viewModel.favouritesStore
+                    )
+                }
+            }
             .onChange(of: isCompareMode) {
                 if !isCompareMode {
                     compareSelection.reset()
@@ -124,13 +138,7 @@ struct ExploreView: View {
     }
 
     private var favouritesButton: some View {
-        NavigationLink {
-            FavouritesView(
-                destinations: viewModel.favouriteDestinations,
-                forecasts: viewModel.forecasts,
-                favouritesStore: viewModel.favouritesStore
-            )
-        } label: {
+        NavigationLink(value: ExploreRoute.favourites) {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "heart.fill")
                     .foregroundStyle(.white)

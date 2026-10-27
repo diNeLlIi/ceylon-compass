@@ -22,43 +22,57 @@ struct CompareChipRowView: View {
     }
 
     private func chip(for destination: Destination) -> some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(AppBrand.tealTop.opacity(0.25))
-                .frame(width: 22, height: 22)
-                .overlay {
-                    Text(String(destination.name?.prefix(1) ?? "?"))
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(AppBrand.tealMid)
-                }
-
+        HStack(spacing: 8) {
+            avatar(for: destination)
             Text(destination.name ?? "Unknown")
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppBrand.navy)
                 .lineLimit(1)
 
             Button {
                 guard let id = destination.id else { return }
                 onRemove(id)
             } label: {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.bold))
                     .foregroundStyle(.secondary)
+                    .padding(5)
+                    .background(Color(.secondarySystemBackground), in: Circle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Remove \(destination.name ?? "destination")")
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color(.secondarySystemBackground), in: Capsule())
+        .padding(.leading, 4)
+        .padding(.trailing, 10)
+        .padding(.vertical, 4)
+        .background(AppBrand.card, in: Capsule())
+        .overlay(
+            Capsule().stroke(Color(.separator), lineWidth: 1)
+        )
     }
-}
 
-#Preview {
-    let context = PersistenceController.preview.container.viewContext
-    let a = Destination(context: context)
-    a.id = UUID()
-    a.name = "Ella"
-    let b = Destination(context: context)
-    b.id = UUID()
-    b.name = "Mirissa"
-
-    return CompareChipRowView(destinations: [a, b], onRemove: { _ in })
+    @ViewBuilder
+    private func avatar(for destination: Destination) -> some View {
+        if let url = destination.imageURL.flatMap(URL.init(string:)) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().aspectRatio(contentMode: .fill)
+                default:
+                    Color(.secondarySystemBackground)
+                }
+            }
+            .frame(width: 28, height: 28)
+            .clipShape(Circle())
+        } else {
+            Circle()
+                .fill(AppBrand.tealTop.opacity(0.25))
+                .frame(width: 28, height: 28)
+                .overlay {
+                    Text(String(destination.name?.prefix(1) ?? "?"))
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(AppBrand.tealMid)
+                }
+        }
+    }
 }
