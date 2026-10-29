@@ -166,6 +166,15 @@ struct SettingsView: View {
                 }
                 .accessibilityIdentifier("settings.privacy")
             }
+
+            #if DEBUG
+            Button {
+                PreferencesStore.shared.hasOnboarded = false
+            } label: {
+                SettingsRow(title: "Reset onboarding", icon: "arrow.counterclockwise", tint: .orange)
+            }
+            .accessibilityIdentifier("settings.resetOnboarding")
+            #endif
         }
     }
 

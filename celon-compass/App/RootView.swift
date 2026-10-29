@@ -11,24 +11,46 @@ import SwiftUI
 struct RootView: View {
     var lockState: AppLockState
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showOnboarding = !PreferencesStore.shared.hasOnboarded
+    @State private var showPreferences = false
 
     var body: some View {
         ZStack {
-            if lockState.hasUnlockedOnce {
-                ContentView()
-                    .safeAreaInset(edge: .top, spacing: 0) { noticeBanner }
-                    .allowsHitTesting(!lockState.isLocked)
-                    .accessibilityHidden(lockState.isLocked)
-            }
-
-            if lockState.isLocked {
-                LaunchGateView(lockState: lockState)
+            if showOnboarding {
+                if showPreferences {
+                    PreferencesSetupView {
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            showOnboarding = false
+                            showPreferences = false
+                        }
+                    }
+                    .transition(.move(edge: .trailing))
+                } else {
+                    OnboardingView {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            showPreferences = true
+                        }
+                    }
                     .transition(.opacity)
-            } else if scenePhase != .active {
-                PrivacyShieldView()
+                }
+            } else {
+                if lockState.hasUnlockedOnce {
+                    ContentView()
+                        .safeAreaInset(edge: .top, spacing: 0) { noticeBanner }
+                        .allowsHitTesting(!lockState.isLocked)
+                        .accessibilityHidden(lockState.isLocked)
+                }
+
+                if lockState.isLocked {
+                    LaunchGateView(lockState: lockState)
+                        .transition(.opacity)
+                } else if scenePhase != .active {
+                    PrivacyShieldView()
+                }
             }
         }
         .animation(.easeInOut(duration: 0.3), value: lockState.isLocked)
+        .animation(.easeInOut(duration: 0.3), value: showOnboarding)
     }
 
     @ViewBuilder
