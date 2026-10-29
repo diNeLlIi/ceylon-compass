@@ -197,4 +197,31 @@ final class ItineraryViewModel: ObservableObject {
             errorMessage = "Couldn't remove that stop."
         }
     }
+
+    struct DaySuitability: Identifiable {
+        let date: Date
+        let score: Int
+        let isIdeal: Bool
+        var id: Date { date }
+    }
+
+    // One bar per trip day: the average per-destination weather score across
+    // that day's stops, powering the suitability chart
+    func daySuitabilityScores(from stops: [ItineraryStop]) -> [DaySuitability] {
+        daySections(from: stops).map { section in
+            let scores: [DestinationWeatherScore] = section.stops.compactMap { stop in
+                guard let destinationID = stop.destination?.id, let date = stop.date else { return nil }
+                return BestWindowCalculator.score(
+                    destinationId: destinationID,
+                    forecasts: forecasts[destinationID] ?? [],
+                    over: [date]
+                )
+            }
+            guard !scores.isEmpty else {
+                return DaySuitability(date: section.date, score: 0, isIdeal: false)
+            }
+            let average = scores.map(\.score).reduce(0, +) / scores.count
+            return DaySuitability(date: section.date, score: average, isIdeal: Band.of(average) == .ideal)
+        }
+    }
 }

@@ -10,6 +10,10 @@ import CoreData
 
 struct ContentView: View {
     @State private var router = TabRouter()
+    @State private var locationService = LocationService()
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)]
+    ) private var trips: FetchedResults<Itinerary>
 
     init() {
         Self.configureTabBarAppearance()
@@ -38,6 +42,15 @@ struct ContentView: View {
         .task {
             try? await AuthService.shared.signInAnonymouslyIfNeeded()
             try? await CatalogSeeder.seedIfNeeded()
+        }
+        .task(id: "\(trips.count)-\(PreferencesStore.shared.tripRemindersEnabled)") {
+            guard PreferencesStore.shared.tripRemindersEnabled,
+                  let trip = ActiveTripResolver.current(Array(trips))
+            else { return }
+            locationService.requestAlways()
+            let stops = ((trip.stops as? Set<ItineraryStop>) ?? [])
+                .sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
+            locationService.monitorStops(stops)
         }
     }
 

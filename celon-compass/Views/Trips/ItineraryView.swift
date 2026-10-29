@@ -4,6 +4,7 @@
 //
 //
 
+import Charts
 import SwiftUI
 import CoreData
 
@@ -68,6 +69,11 @@ struct ItineraryView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 }
+
+                suitabilityChart
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
             
             
@@ -212,6 +218,29 @@ struct ItineraryView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
+    }
+
+    @ViewBuilder
+    private var suitabilityChart: some View {
+        let days = viewModel.daySuitabilityScores(from: Array(stops))
+        if days.count > 1 {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Suitability by day")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Chart(days) { day in
+                    BarMark(
+                        x: .value("Day", day.date, unit: .day),
+                        y: .value("Suitability", day.score)
+                    )
+                    .foregroundStyle(day.isIdeal ? Color.mint : Color.gray.opacity(0.4))
+                }
+                .chartYScale(domain: 0...100)
+                .frame(height: 120)
+            }
+            .padding(.horizontal)
+            .padding(.top, 4)
+        }
     }
 
     private let routingService: RoutingServicing = HaversineRoutingService()

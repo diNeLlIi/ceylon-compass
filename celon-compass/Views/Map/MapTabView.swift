@@ -13,23 +13,46 @@ struct MapTabView: View {
     )
     private var destinations: FetchedResults<Destination>
 
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)]
+    )
+    private var trips: FetchedResults<Itinerary>
+
     @State private var position: MapCameraPosition = .region(Self.sriLanka)
+    @State private var visibleRegion: MKCoordinateRegion = Self.sriLanka
     @State private var mapStyle: MapStyleChoice = .standard
     @State private var selected: Destination?
     @State private var forecasts: [UUID: [DayForecast]] = [:]
     @State private var isLoadingWeather = false
+    @State private var gemPOIs: [POI] = []
+    @State private var gemLoadTask: Task<Void, Never>?
 
     private let weatherService: WeatherServicing = WeatherService()
+    private let gemService: OverpassServicing = OverpassService()
 
     private static let sriLanka = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 7.8731, longitude: 80.7718),
         span: MKCoordinateSpan(latitudeDelta: 3.4, longitudeDelta: 3.2)
     )
 
+    private var visibleDestinations: [Destination] {
+        destinations.filter { isVisible(CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)) }
+    }
+
+    private var activeTripRouteCoordinates: [CLLocationCoordinate2D] {
+        guard let trip = ActiveTripResolver.current(Array(trips)) else { return [] }
+        let stops = ((trip.stops as? Set<ItineraryStop>) ?? [])
+            .sorted {
+                if $0.date != $1.date { return ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
+                return $0.sortOrder < $1.sortOrder
+            }
+        return stops.map { CLLocationCoordinate2D(latitude: $0.poiLatitude, longitude: $0.poiLongitude) }
+    }
+
     var body: some View {
         NavigationStack {
             Map(position: $position, selection: $selected) {
-                ForEach(Array(destinations), id: \.self) { destination in
+                ForEach(Array(visibleDestinations), id: \.self) { destination in
                     Annotation(
                         destination.name ?? "Destination",
                         coordinate: CLLocationCoordinate2D(latitude: destination.latitude, longitude: destination.longitude)
@@ -39,12 +62,37 @@ struct MapTabView: View {
                     }
                     .tag(destination)
                 }
+
+                ForEach(gemPOIs) { gem in
+                    Annotation(gem.name, coordinate: CLLocationCoordinate2D(latitude: gem.coordinate.latitude, longitude: gem.coordinate.longitude)) {
+                        GemPin()
+                    }
+                }
+
+                if activeTripRouteCoordinates.count >= 2 {
+                    MapPolyline(coordinates: activeTripRouteCoordinates)
+                        .stroke(.primary, lineWidth: 4)
+                }
             }
             .mapStyle(mapStyle.swiftUIStyle)
             .mapControls {
                 MapUserLocationButton()
                 MapCompass()
                 MapScaleView()
+            }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                visibleRegion = context.region
+                scheduleGemFetch()
+            }
+            .overlay(alignment: .bottom) {
+                if !gemPOIs.isEmpty {
+                    Text("Gem locations via OpenStreetMap contributors")
+                        .font(.caption2)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .padding(.bottom, 8)
+                }
             }
             .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Map")
@@ -54,7 +102,10 @@ struct MapTabView: View {
                     styleToggle
                 }
             }
-            .task { await loadWeatherIfNeeded() }
+            .task {
+                await loadWeatherIfNeeded()
+                scheduleGemFetch()
+            }
             .sheet(item: $selected) { destination in
                 NavigationStack {
                     DestinationQuickSheet(
@@ -91,6 +142,31 @@ struct MapTabView: View {
     private func destinationForecast(_ destination: Destination) -> DayForecast? {
         guard let id = destination.id else { return nil }
         return forecasts[id]?.first
+    }
+
+    private func isVisible(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        let latDelta = visibleRegion.span.latitudeDelta / 2
+        let lonDelta = visibleRegion.span.longitudeDelta / 2
+        let latRange = (visibleRegion.center.latitude - latDelta)...(visibleRegion.center.latitude + latDelta)
+        let lonRange = (visibleRegion.center.longitude - lonDelta)...(visibleRegion.center.longitude + lonDelta)
+        return latRange.contains(coordinate.latitude) && lonRange.contains(coordinate.longitude)
+    }
+
+    
+    private func scheduleGemFetch() {
+        gemLoadTask?.cancel()
+        let radiusKm = min(25, max(3, visibleRegion.span.latitudeDelta * 55))
+        let center = Coordinate(
+            latitude: (visibleRegion.center.latitude * 100).rounded() / 100,
+            longitude: (visibleRegion.center.longitude * 100).rounded() / 100
+        )
+        gemLoadTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            let fetched = try? await gemService.gems(alongRoute: center, to: center, radiusKm: radiusKm, excluding: [])
+            guard !Task.isCancelled else { return }
+            gemPOIs = fetched ?? []
+        }
     }
 
     @MainActor
@@ -176,9 +252,39 @@ private struct WeatherPin: View {
     }
 }
 
+private struct GemPin: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(AppBrand.amber)
+                .frame(width: 30, height: 30)
+                .overlay(Circle().stroke(.white, lineWidth: 2))
+                .shadow(radius: 2, y: 1)
+            Image(systemName: "sparkles")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppBrand.navy)
+        }
+    }
+}
+
 private struct DestinationQuickSheet: View {
     let destination: Destination
     let forecast: DayForecast?
+
+    @Environment(\.managedObjectContext) private var context
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)]
+    )
+    private var allTrips: FetchedResults<Itinerary>
+
+    @State private var showTripPicker = false
+    @State private var showPlanTrip = false
+    @State private var addedTripTitle: String?
+    @State private var errorMessage: String?
+
+    private var candidateTrips: [Itinerary] {
+        ActiveTripResolver.activeOrUpcoming(Array(allTrips))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -209,21 +315,90 @@ private struct DestinationQuickSheet: View {
                     .foregroundStyle(.secondary)
             }
 
-            NavigationLink(value: destination) {
-                HStack {
-                    Image(systemName: "arrow.right.circle.fill")
-                    Text("View details")
-                        .font(.subheadline.weight(.semibold))
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(AppBrand.tealMid, in: Capsule())
-                .foregroundStyle(.white)
+            HStack(spacing: 10) {
+                addToTripButton
+                viewDetailsLink
             }
-            .buttonStyle(.plain)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .navigationDestination(isPresented: $showPlanTrip) {
+            PlanTripView(destination: destination)
+        }
+        .confirmationDialog("Add to which trip?", isPresented: $showTripPicker, titleVisibility: .visible) {
+            ForEach(candidateTrips, id: \.objectID) { trip in
+                Button(trip.title ?? "Untitled trip") { add(to: trip) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert(
+            "Couldn't add stop",
+            isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    private var addToTripButton: some View {
+        Button(action: addToTripTapped) {
+            HStack(spacing: 6) {
+                Image(systemName: addedTripTitle != nil ? "checkmark.circle.fill" : "plus.circle.fill")
+                Text(addedTripTitle != nil ? "Added" : "Add to Trip")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(AppBrand.navy.opacity(0.08), in: Capsule())
+            .foregroundStyle(AppBrand.navy)
+        }
+        .buttonStyle(.plain)
+        .disabled(addedTripTitle != nil)
+    }
+
+    private var viewDetailsLink: some View {
+        NavigationLink(value: destination) {
+            HStack {
+                Image(systemName: "arrow.right.circle.fill")
+                Text("View details")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(AppBrand.tealMid, in: Capsule())
+            .foregroundStyle(.white)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func addToTripTapped() {
+        switch candidateTrips.count {
+        case 0:
+            showPlanTrip = true
+        case 1:
+            add(to: candidateTrips[0])
+        default:
+            showTripPicker = true
+        }
+    }
+
+    private func add(to trip: Itinerary) {
+        let repository = TripRepository(context: context)
+        let stopCount = (trip.stops as? Set<ItineraryStop>)?.count ?? 0
+        let date = trip.endDate.flatMap { Calendar.current.date(byAdding: .day, value: 1, to: $0) }
+            ?? Calendar.current.date(byAdding: .day, value: 1, to: .now)!
+        do {
+            try repository.addStop(to: trip, poi: POI(destination: destination), date: date, sortIndex: Int16(stopCount))
+            trip.startDate = [trip.startDate, date].compactMap { $0 }.min()
+            trip.endDate = [trip.endDate, date].compactMap { $0 }.max()
+            try context.save()
+            try repository.recomputeConflicts(for: trip)
+            addedTripTitle = trip.title
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        } catch {
+            errorMessage = "Couldn't add this stop. Try again."
+        }
     }
 
     @ViewBuilder
