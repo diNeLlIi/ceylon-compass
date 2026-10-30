@@ -82,17 +82,18 @@ struct TripStopSheet: View {
             }
 
             HStack(spacing: 10) {
-                Button(role: .destructive) {
-                    showRemoveConfirmation = true
-                } label: {
-                    Label("Remove", systemImage: "minus.circle.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(AppBrand.destructiveTint, in: Capsule())
-                        .foregroundStyle(AppBrand.destructive)
-                }
-                .buttonStyle(.plain)
+//                Button(role: .destructive) {
+//                    showRemoveConfirmation = true
+//                }
+//                 label: {
+//                     Label("Remove", systemImage: "minus.circle.fill")
+//                         .font(.subheadline.weight(.semibold))
+//                         .frame(maxWidth: .infinity)
+//                         .padding(.vertical, 12)
+//                         .background(AppBrand.destructiveTint, in: Capsule())
+//                         .foregroundStyle(AppBrand.destructive)
+//                 }
+//                 .buttonStyle(.plain)
 
                 if let trip = pin.stop?.itinerary {
                     NavigationLink(value: trip) {

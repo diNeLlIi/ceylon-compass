@@ -15,39 +15,57 @@ struct TripListView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)],
         animation: .default
     ) private var trips: FetchedResults<Itinerary>
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Destination.name, ascending: true)]
+    ) private var destinations: FetchedResults<Destination>
     @StateObject private var viewModel = MyTripsViewModel()
 
     @State private var tripPendingDelete: Itinerary?
     @State private var errorMessage: String?
+    @State private var searchText = ""
 
+    private var matchingDestinations: [Destination] {
+        guard !searchText.isEmpty else { return [] }
+        return destinations.filter {
+            ($0.name ?? "").localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    // Past trips
     private var activeUpcomingTrips: [Itinerary] {
-        trips.filter(isActiveOrUpcoming)
-    }
-
-    private var historyTrips: [Itinerary] {
-        trips.filter { !isActiveOrUpcoming($0) }
-    }
-
-    private func isActiveOrUpcoming(_ trip: Itinerary) -> Bool {
-        guard let endDate = trip.endDate else { return true }
-        return endDate >= Calendar.current.startOfDay(for: .now)
+        trips.filter { trip in
+            guard let endDate = trip.endDate else { return true }
+            return endDate >= Calendar.current.startOfDay(for: .now)
+        }
     }
 
     var body: some View {
         NavigationStack {
             Group {
-                if trips.isEmpty {
+                if !searchText.isEmpty {
+                    searchResults
+                } else if activeUpcomingTrips.isEmpty {
                     emptyState
                 } else {
                     tripList
                 }
             }
             .background(AppBrand.canvas)
+        
+            .safeAreaInset(edge: .top) {
+                DestinationSearchBar(text: $searchText)
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
+                    .background(AppBrand.canvas)
+            }
             .navigationTitle("My Trips")
             .navigationBarTitleDisplayMode(.inline)
             .brandToolbar()
             .navigationDestination(for: Itinerary.self) { trip in
                 ItineraryView(trip: trip)
+            }
+            .navigationDestination(for: Destination.self) { destination in
+                PlanTripView(destination: destination)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -91,60 +109,50 @@ struct TripListView: View {
         }
     }
 
-    private var tripList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                if !activeUpcomingTrips.isEmpty {
-                    sectionHeader("Active & Upcoming")
-                    VStack(spacing: 14) {
-                        ForEach(activeUpcomingTrips) { trip in
-                            NavigationLink(value: trip) {
-                                TripHeroCardView(trip: trip, viewModel: viewModel)
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    tripPendingDelete = trip
-                                } label: {
-                                    Label("Delete Trip", systemImage: "trash")
-                                }
-                            }
+    @ViewBuilder
+    private var searchResults: some View {
+        if matchingDestinations.isEmpty {
+            ContentUnavailableView.search(text: searchText)
+        } else {
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(matchingDestinations.enumerated()), id: \.element.objectID) { index, destination in
+                        NavigationLink(value: destination) {
+                            DestinationSearchRow(destination: destination)
+                        }
+                        .buttonStyle(.plain)
+                        if index < matchingDestinations.count - 1 {
+                            Divider().padding(.leading, 70)
                         }
                     }
                 }
+                .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+            }
+        }
+    }
 
-                if !historyTrips.isEmpty {
-                    sectionHeader("Trip History")
-                    VStack(spacing: 0) {
-                        ForEach(Array(historyTrips.enumerated()), id: \.element.objectID) { index, trip in
-                            NavigationLink(value: trip) {
-                                TripHistoryRowView(trip: trip)
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button(role: .destructive) {
-                                    tripPendingDelete = trip
-                                } label: {
-                                    Label("Delete Trip", systemImage: "trash")
-                                }
-                            }
-                            if index < historyTrips.count - 1 {
-                                Divider().padding(.leading, 66)
-                            }
+    private var tripList: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                ForEach(activeUpcomingTrips) { trip in
+                    NavigationLink(value: trip) {
+                        TripHeroCardView(trip: trip, viewModel: viewModel)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            tripPendingDelete = trip
+                        } label: {
+                            Label("Delete Trip", systemImage: "trash")
                         }
                     }
-                    .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
         }
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.secondary)
     }
 
     private var emptyState: some View {
@@ -163,7 +171,7 @@ struct TripListView: View {
             }
 
             VStack(spacing: 6) {
-                Text("No trips yet")
+                Text(hasPastTrips ? "Nothing coming up" : "No trips yet")
                     .font(.title3.weight(.semibold))
                 Text("Pick a few destinations and WanderLanka will find the days with the best weather across all of them.")
                     .font(.subheadline)
@@ -174,7 +182,7 @@ struct TripListView: View {
             Button {
                 router.selection = .explore
             } label: {
-                Text("Plan your first trip")
+                Text(hasPastTrips ? "Plan your next trip" : "Plan your first trip")
                     .font(.headline)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 24)
@@ -182,9 +190,24 @@ struct TripListView: View {
                     .background(AppBrand.tealTop, in: Capsule())
             }
             .buttonStyle(.plain)
+
+            if hasPastTrips {
+                Button {
+                    router.selection = .memories
+                } label: {
+                    Label("See past trips in Memories", systemImage: "clock.arrow.circlepath")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppBrand.link)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var hasPastTrips: Bool {
+        trips.count > activeUpcomingTrips.count
     }
 
     private func delete(_ trip: Itinerary) {
@@ -192,7 +215,7 @@ struct TripListView: View {
             do {
                 try await TripRepository(context: context).deleteTrip(trip)
             } catch {
-                // A plain cancel returns nil: the trip simply stays.
+                // A plain cancel returns nil: the trip simply stays
                 errorMessage = DestructiveActionGuard.userMessage(for: error, noun: "the trip")
             }
         }
