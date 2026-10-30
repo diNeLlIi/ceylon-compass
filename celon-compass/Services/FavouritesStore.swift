@@ -38,24 +38,45 @@ final class FavouritesStore {
         favourite.id = UUID()
         favourite.destinationId = destinationId
         favourite.createdAt = Date()
+        favourite.touch()
         persist()
     }
 
     func remove(_ destinationId: UUID) {
         let request = Favourite.fetchRequest()
         request.predicate = NSPredicate(format: "destinationId == %@", destinationId as CVarArg)
-        (try? context.fetch(request))?.forEach(context.delete)
+        let fetched = (try? context.fetch(request)) ?? []
+        for fav in fetched {
+            // Tombstone for sync propagation
+            if let remoteID = fav.remoteID {
+                let tombstone = Tombstone(context: context)
+                tombstone.id = UUID()
+                tombstone.path = "favourites/\(remoteID)"
+                tombstone.createdAt = Date()
+            }
+            context.delete(fav)
+        }
         persist()
     }
 
     func removeAll() {
-        (try? context.fetch(Favourite.fetchRequest()))?.forEach(context.delete)
+        let all = (try? context.fetch(Favourite.fetchRequest())) ?? []
+        for fav in all {
+            if let remoteID = fav.remoteID {
+                let tombstone = Tombstone(context: context)
+                tombstone.id = UUID()
+                tombstone.path = "favourites/\(remoteID)"
+                tombstone.createdAt = Date()
+            }
+            context.delete(fav)
+        }
         persist()
     }
 
     private func persist() {
         try? context.save()
         reload()
+        SyncCoordinator.shared.enqueue()
     }
 
     private func reload() {

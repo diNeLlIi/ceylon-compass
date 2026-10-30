@@ -22,62 +22,12 @@
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="destinationId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="remoteID" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="destinationId"/>
-            </uniquenessConstraint>
-        </uniquenessConstraints>
-    </entity>
-    <entity name="Itinerary" representedClassName="Itinerary" syncable="YES">
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="originLat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="originLon" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="originName" optional="YES" attributeType="String"/>
-        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="status" optional="YES" attributeType="String"/>
-        <attribute name="title" optional="YES" attributeType="String"/>
-        <relationship name="stops" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ItineraryStop" inverseName="itinerary" inverseEntity="ItineraryStop"/>
-    </entity>
-    <entity name="ItineraryStop" representedClassName="ItineraryStop" syncable="YES">
-        <attribute name="conflictKind" optional="YES" attributeType="String"/>
-        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="distanceOffRoute" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="hasConflict" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="poiCategory" optional="YES" attributeType="String"/>
-        <attribute name="poiLatitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="poiLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="poiName" optional="YES" attributeType="String"/>
-        <attribute name="poiSource" optional="YES" attributeType="String" defaultValueString="catalog"/>
-        <attribute name="sortOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="travelNotes" optional="YES" attributeType="String"/>
-        <relationship name="destination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Destination" inverseName="stops" inverseEntity="Destination"/>
-        <relationship name="itinerary" maxCount="1" deletionRule="Nullify" destinationEntity="Itinerary" inverseName="stops" inverseEntity="Itinerary"/>
-        <relationship name="travelNote" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TravelNote" inverseName="stop" inverseEntity="TravelNote"/>
-    </entity>
-    <entity name="TravelNote" representedClassName="TravelNote" syncable="YES">
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="text" optional="YES" attributeType="String"/>
-        <relationship name="stop" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ItineraryStop" inverseName="travelNote" inverseEntity="ItineraryStop"/>
-    </entity>
-    <entity name="VisitRecord" representedClassName="VisitRecord" syncable="YES">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="note" optional="YES" attributeType="String"/>
-        <attribute name="rating" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="visitDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="destination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Destination" inverseName="visitRecords" inverseEntity="Destination"/>
-    </entity>
-    <entity name="WeatherSnapshot" representedClassName="WeatherSnapshot" syncable="YES">
-        <attribute name="dailyJSON" optional="YES" attributeType="String"/>
-        <attribute name="destinationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="fetchedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <uniquenessConstraints>
-            <uniquenessConstraint>
-                <constraint value="destinationID"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
@@ -89,6 +39,104 @@
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="cacheKey"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="Itinerary" representedClassName="Itinerary" syncable="YES">
+        <attribute name="completedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="originLat" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="originLon" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="originName" optional="YES" attributeType="String"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="remoteID" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="stops" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ItineraryStop" inverseName="itinerary" inverseEntity="ItineraryStop"/>
+    </entity>
+    <entity name="ItineraryStop" representedClassName="ItineraryStop" syncable="YES">
+        <attribute name="conflictKind" optional="YES" attributeType="String"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="distanceOffRoute" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="hasConflict" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="poiCategory" optional="YES" attributeType="String"/>
+        <attribute name="poiLatitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="poiLongitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="poiName" optional="YES" attributeType="String"/>
+        <attribute name="poiSource" optional="YES" attributeType="String" defaultValueString="catalog"/>
+        <attribute name="remoteID" optional="YES" attributeType="String"/>
+        <attribute name="sortOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="travelNotes" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="destination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Destination" inverseName="stops" inverseEntity="Destination"/>
+        <relationship name="itinerary" maxCount="1" deletionRule="Nullify" destinationEntity="Itinerary" inverseName="stops" inverseEntity="Itinerary"/>
+        <relationship name="travelNote" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="TravelNote" inverseName="stop" inverseEntity="TravelNote"/>
+    </entity>
+    <entity name="Tombstone" representedClassName="Tombstone" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="path" attributeType="String" defaultValueString=""/>
+    </entity>
+    <entity name="TravelNote" representedClassName="TravelNote" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="remoteID" optional="YES" attributeType="String"/>
+        <attribute name="source" optional="YES" attributeType="String" defaultValueString="manual"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="stop" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ItineraryStop" inverseName="travelNote" inverseEntity="ItineraryStop"/>
+        <relationship name="visitRecord" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VisitRecord" inverseName="note" inverseEntity="VisitRecord"/>
+    </entity>
+    <entity name="UserProfile" representedClassName="UserProfile" syncable="YES">
+        <attribute name="displayName" optional="YES" attributeType="String"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="homeCity" optional="YES" attributeType="String"/>
+        <attribute name="interests" optional="YES" attributeType="String"/>
+        <attribute name="isAnonymous" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="rainTolerance" optional="YES" attributeType="String" defaultValueString="medium"/>
+        <attribute name="tempUnit" optional="YES" attributeType="String" defaultValueString="celsius"/>
+        <attribute name="uid" attributeType="String" defaultValueString=""/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="uid"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="VisitRecord" representedClassName="VisitRecord" syncable="YES">
+        <attribute name="capturedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="latitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="matchConfidence" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="pendingSync" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="photoData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="rating" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="remoteID" optional="YES" attributeType="String"/>
+        <attribute name="stopName" optional="YES" attributeType="String"/>
+        <attribute name="suggestedStopName" optional="YES" attributeType="String"/>
+        <attribute name="thumbnailData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="visitDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="destination" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Destination" inverseName="visitRecords" inverseEntity="Destination"/>
+        <relationship name="note" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="TravelNote" inverseName="visitRecord" inverseEntity="TravelNote"/>
+    </entity>
+    <entity name="WeatherSnapshot" representedClassName="WeatherSnapshot" syncable="YES">
+        <attribute name="dailyJSON" optional="YES" attributeType="String"/>
+        <attribute name="destinationID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="fetchedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="destinationID"/>
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>

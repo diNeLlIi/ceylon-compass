@@ -17,10 +17,14 @@ extension Itinerary {
     @NSManaged public var startDate: Date?
     @NSManaged public var endDate: Date?
     @NSManaged public var createdAt: Date?
+    @NSManaged public var completedAt: Date?
     @NSManaged public var status: String?
     @NSManaged public var originName: String?
     @NSManaged public var originLat: Double
     @NSManaged public var originLon: Double
+    @NSManaged public var remoteID: String?
+    @NSManaged public var updatedAt: Date?
+    @NSManaged public var pendingSync: Bool
     @NSManaged public var stops: NSSet?
 
 }

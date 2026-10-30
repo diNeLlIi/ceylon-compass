@@ -162,30 +162,9 @@ struct ExploreView: View {
 
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(.secondary)
-            TextField("", text: $viewModel.searchText, prompt: Text("Search destinations").foregroundStyle(.secondary))
-                .font(.body)
-                .foregroundStyle(.primary)
-            if !viewModel.searchText.isEmpty {
-                Button {
-                    viewModel.searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .background(.ultraThinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(AppBrand.hairline, lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
-        .padding(.horizontal)
-        .padding(.bottom, 8)
+        DestinationSearchBar(text: $viewModel.searchText)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
     }
 
     private var showBentoSection: Bool {

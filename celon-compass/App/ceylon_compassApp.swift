@@ -34,6 +34,9 @@ struct celon_compassApp: App {
         if newPhase == .background {
             lockState.lock()
         }
+        if newPhase == .active {
+            Task { await SyncCoordinator.shared.pushNow() }
+        }
     }
   }
 }

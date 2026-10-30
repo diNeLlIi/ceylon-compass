@@ -15,20 +15,20 @@ struct TripListView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)],
         animation: .default
     ) private var trips: FetchedResults<Itinerary>
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Destination.name, ascending: true)]
-    ) private var destinations: FetchedResults<Destination>
     @StateObject private var viewModel = MyTripsViewModel()
 
     @State private var tripPendingDelete: Itinerary?
     @State private var errorMessage: String?
     @State private var searchText = ""
 
-    private var matchingDestinations: [Destination] {
+    // Scoped to stops already on one of the user's own trips, active or past not the
+    // full catalog. My Trips searches what you've planned, not what you could plan.
+    private var matchingStops: [ItineraryStop] {
         guard !searchText.isEmpty else { return [] }
-        return destinations.filter {
-            ($0.name ?? "").localizedCaseInsensitiveContains(searchText)
-        }
+        let allStops = trips.flatMap { ($0.stops as? Set<ItineraryStop>) ?? [] }
+        return allStops
+            .filter { ($0.poiName ?? "").localizedCaseInsensitiveContains(searchText) }
+            .sorted { ($0.date ?? .distantFuture) < ($1.date ?? .distantFuture) }
     }
 
     // Past trips
@@ -63,9 +63,6 @@ struct TripListView: View {
             .brandToolbar()
             .navigationDestination(for: Itinerary.self) { trip in
                 ItineraryView(trip: trip)
-            }
-            .navigationDestination(for: Destination.self) { destination in
-                PlanTripView(destination: destination)
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -111,26 +108,36 @@ struct TripListView: View {
 
     @ViewBuilder
     private var searchResults: some View {
-        if matchingDestinations.isEmpty {
+        if matchingStops.isEmpty {
             ContentUnavailableView.search(text: searchText)
         } else {
             ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(Array(matchingDestinations.enumerated()), id: \.element.objectID) { index, destination in
-                        NavigationLink(value: destination) {
-                            DestinationSearchRow(destination: destination)
-                        }
-                        .buttonStyle(.plain)
-                        if index < matchingDestinations.count - 1 {
-                            Divider().padding(.leading, 70)
+                VStack(spacing: 10) {
+                    ForEach(matchingStops, id: \.objectID) { stop in
+                        if let trip = stop.itinerary {
+                            NavigationLink(value: trip) {
+                                StopRow(
+                                    title: stop.poiName ?? "Stop",
+                                    subtitle: stopSubtitle(stop, trip: trip),
+                                    imageURL: stop.destination?.imageURL.flatMap(URL.init(string:))
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
-                .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .padding(.horizontal)
                 .padding(.vertical, 12)
             }
         }
+    }
+
+    private func stopSubtitle(_ stop: ItineraryStop, trip: Itinerary) -> String {
+        var parts = [trip.title ?? "Untitled trip"]
+        if let date = stop.date {
+            parts.append(date.formatted(.dateTime.day().month(.abbreviated)))
+        }
+        return parts.joined(separator: " · ")
     }
 
     private var tripList: some View {

@@ -17,9 +17,9 @@ final class AppLockState {
         case lockedOut
     }
 
-    private(set) var isLocked = true
+    private(set) var isLocked = PreferencesStore.shared.faceIDLockEnabled
     // Protected content is only mounted after the first successful unlock.
-    private(set) var hasUnlockedOnce = false
+    private(set) var hasUnlockedOnce = !PreferencesStore.shared.faceIDLockEnabled
     private(set) var isAuthenticating = false
     private(set) var reason: LockReason = .none
     private(set) var failureCount = 0
@@ -55,6 +55,7 @@ final class AppLockState {
     }
 
     func lock() {
+        guard PreferencesStore.shared.faceIDLockEnabled else { return }
         lockGeneration += 1
         isLocked = true
         reason = .none

@@ -10,6 +10,7 @@ import Foundation
 enum ActiveTripResolver {
     static func activeOrUpcoming(_ trips: [Itinerary], now: Date = .now, calendar: Calendar = .current) -> [Itinerary] {
         trips.filter { trip in
+            guard trip.completedAt == nil else { return false }
             guard let endDate = trip.endDate else { return true }
             return endDate >= calendar.startOfDay(for: now)
         }

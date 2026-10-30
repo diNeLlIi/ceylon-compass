@@ -19,6 +19,7 @@ struct SettingsView: View {
             List {
                 accountSection
                 preferencesSection
+                securitySection
                 dataSection
                 aboutSection
             }
@@ -59,11 +60,12 @@ struct SettingsView: View {
     private var accountSection: some View {
         SettingsCard(title: "Account") {
             NavigationLink {
-                AccountView()
+                ProfileView()
             } label: {
                 SettingsRow(
-                    title: "Link account",
-                    subtitle: AuthService.shared.linkedEmail ?? "Sync trips across devices"
+                    title: UserProfileStore.shared.displayName ?? (AuthService.shared.linkedEmail ?? "Guest"),
+                    subtitle: AuthService.shared.isAnonymous ? "Tap to set up your account" : "Signed in",
+                    icon: "person.crop.circle"
                 )
             }
             .accessibilityIdentifier("settings.account")
@@ -98,6 +100,34 @@ struct SettingsView: View {
                 ))
             }
 
+            SettingsRow(title: "Appearance") {
+                Picker("Appearance", selection: Binding(
+                    get: { model.preferences.appearanceMode },
+                    set: { model.preferences.appearanceMode = $0 }
+                )) {
+                    ForEach(AppearanceMode.allCases) { mode in
+                        Text(mode.name).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+            }
+            .accessibilityIdentifier("settings.appearance")
+
+            SettingsRow(title: "Rain tolerance") {
+                Picker("Rain tolerance", selection: Binding(
+                    get: { model.preferences.rainTolerance },
+                    set: { model.preferences.rainTolerance = $0 }
+                )) {
+                    ForEach(RainTolerance.allCases) { level in
+                        Text(level.rawValue.capitalized).tag(level)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+            }
+            .accessibilityIdentifier("settings.rainTolerance")
+
             Toggle("Weather alerts", isOn: Binding(
                 get: { model.preferences.weatherAlertsEnabled },
                 set: { value in Task { await model.setWeatherAlerts(value) } }
@@ -121,6 +151,18 @@ struct SettingsView: View {
         if sorted.isEmpty { return "None selected" }
         if sorted.count <= 3 { return sorted.joined(separator: ", ") }
         return "\(sorted.prefix(2).joined(separator: ", ")) +\(sorted.count - 2) more"
+    }
+
+//user data
+    private var securitySection: some View {
+        SettingsCard(title: "Security") {
+            NavigationLink {
+                SecurityView()
+            } label: {
+                SettingsRow(title: "App Lock", subtitle: PreferencesStore.shared.faceIDLockEnabled ? "On" : "Off")
+            }
+            .accessibilityIdentifier("settings.security")
+        }
     }
 
 //user data

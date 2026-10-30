@@ -7,7 +7,7 @@
 
 import SwiftUI
 import MapKit
-public import CoreData
+import CoreData
 
 struct MapTabView: View {
     @FetchRequest(
@@ -32,10 +32,13 @@ struct MapTabView: View {
     @State private var mapStyle: MapStyleChoice = .standard
     @State private var selectedPinID: String?
     @State private var searchResult: Destination?
+    @State private var searchText = ""
     @State private var forecasts: [UUID: [DayForecast]] = [:]
     @State private var isLoadingWeather = false
     @State private var gemPOIs: [POI] = []
     @State private var gemLoadTask: Task<Void, Never>?
+    @State private var mapSearchResults: [MKMapItem] = []
+    @State private var mapSearchTask: Task<Void, Never>?
 
     private let weatherService: WeatherServicing = WeatherService()
     private let gemService: OverpassServicing = OverpassService()
@@ -67,6 +70,13 @@ struct MapTabView: View {
             get: { pins.first { $0.id == selectedPinID } },
             set: { selectedPinID = $0?.id }
         )
+    }
+
+    private var searchMatches: [Destination] {
+        guard !searchText.isEmpty else { return [] }
+        return destinations.filter {
+            ($0.name ?? "").localizedCaseInsensitiveContains(searchText)
+        }
     }
 
     var body: some View {
@@ -101,7 +111,7 @@ struct MapTabView: View {
                 scheduleGemFetch()
             }
             .overlay(alignment: .center) { emptyStateCard }
-            .overlay(alignment: .bottom) { gemAttribution }
+            .overlay(alignment: .bottom) { searchOverlay }
             .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
@@ -154,15 +164,126 @@ struct MapTabView: View {
         }
     }
 
+    private var hasAnyResults: Bool {
+        !searchMatches.isEmpty || !mapSearchResults.isEmpty
+    }
+
+    // Positioned like Explore's search bar: floating at the bottom of the screen,
+    // not pinned above the content, so the map itself stays the full canvas.
+    private var searchOverlay: some View {
+        VStack(spacing: 8) {
+            if hasAnyResults {
+                searchResultsList
+            }
+            gemAttribution
+            DestinationSearchBar(text: $searchText, prompt: "Search any place in Sri Lanka")
+        }
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+        .onChange(of: searchText) { _, newValue in
+            scheduleMapSearch(for: newValue)
+        }
+    }
+
+    private var searchResultsList: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(searchMatches.prefix(3).enumerated()), id: \.element.objectID) { index, destination in
+                Button {
+                    selectSearchResult(destination)
+                } label: {
+                    DestinationSearchRow(destination: destination)
+                }
+                .buttonStyle(.plain)
+                if index < min(searchMatches.count, 3) - 1 || !mapSearchResults.isEmpty {
+                    Divider().padding(.leading, 70)
+                }
+            }
+
+            let mapItems = mapSearchResults.prefix(5 - min(searchMatches.count, 3))
+            ForEach(Array(mapItems.enumerated()), id: \.offset) { index, item in
+                Button {
+                    selectMapItem(item)
+                } label: {
+                    MapSearchRow(item: item)
+                }
+                .buttonStyle(.plain)
+                if index < mapItems.count - 1 {
+                    Divider().padding(.leading, 70)
+                }
+            }
+        }
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(AppBrand.hairline, lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
+    }
+
     @ViewBuilder
     private var gemAttribution: some View {
-        if !gemPOIs.isEmpty {
+        if !gemPOIs.isEmpty && searchText.isEmpty {
             Text("Gem locations via OpenStreetMap contributors")
                 .font(.caption2)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(.ultraThinMaterial, in: Capsule())
-                .padding(.bottom, 8)
+        }
+    }
+
+    private func selectSearchResult(_ destination: Destination) {
+        searchText = ""
+        mapSearchResults = []
+        withAnimation {
+            position = .region(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: destination.latitude, longitude: destination.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.12, longitudeDelta: 0.12)
+                )
+            )
+        }
+        guard let id = destination.id else { return }
+        if let existing = pins.first(where: { $0.destination?.id == id }) {
+            selectedPinID = existing.id
+        } else {
+            searchResult = destination
+            selectedPinID = "search-\(id.uuidString)"
+        }
+        UISelectionFeedbackGenerator().selectionChanged()
+    }
+
+    private func selectMapItem(_ item: MKMapItem) {
+        searchText = ""
+        mapSearchResults = []
+        let coord = item.placemark.coordinate
+        withAnimation {
+            position = .region(
+                MKCoordinateRegion(
+                    center: coord,
+                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                )
+            )
+        }
+        UISelectionFeedbackGenerator().selectionChanged()
+    }
+
+    private func scheduleMapSearch(for query: String) {
+        mapSearchTask?.cancel()
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else {
+            mapSearchResults = []
+            return
+        }
+        mapSearchTask = Task {
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard !Task.isCancelled else { return }
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = query
+            request.region = Self.sriLanka
+            let search = MKLocalSearch(request: request)
+            let response = try? await search.start()
+            guard !Task.isCancelled else { return }
+            let catalogNames = Set(searchMatches.prefix(3).compactMap { $0.name?.lowercased() })
+            mapSearchResults = (response?.mapItems ?? []).filter { item in
+                guard let name = item.name?.lowercased() else { return true }
+                return !catalogNames.contains(name)
+            }
         }
     }
 
@@ -249,6 +370,39 @@ struct GemPin: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppBrand.navy)
         }
+    }
+}
+
+struct MapSearchRow: View {
+    let item: MKMapItem
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "mappin.circle.fill")
+                .font(.title2)
+                .foregroundStyle(AppBrand.accent)
+                .frame(width: 44, height: 44)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.name ?? "Unknown")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppBrand.heading)
+                if let locality = item.placemark.locality ?? item.placemark.administrativeArea {
+                    Text(locality)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
     }
 }
 

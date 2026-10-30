@@ -9,6 +9,7 @@ struct PreferencesSetupView: View {
     @State private var homeCity: String = "Colombo"
     @State private var selectedInterests: Set<TravelInterest> = []
     @State private var temperatureUnit: TemperatureUnit = .celsius
+    @State private var rainTolerance: RainTolerance = .medium
     var onFinish: () -> Void
 
     private let columns = [
@@ -60,6 +61,7 @@ struct PreferencesSetupView: View {
             homeCityField
             interestChips
             temperatureRow
+            rainToleranceRow
             startButton
         }
         .padding(20)
@@ -146,6 +148,21 @@ struct PreferencesSetupView: View {
         }
     }
 
+    private var rainToleranceRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Rain tolerance")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            Picker("Rain tolerance", selection: $rainTolerance) {
+                ForEach(RainTolerance.allCases) { level in
+                    Text(level.rawValue.capitalized).tag(level)
+                }
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
     private var startButton: some View {
         Button(action: save) {
             Text("Start exploring")
@@ -164,6 +181,7 @@ struct PreferencesSetupView: View {
         prefs.homeCity = homeCity.trimmingCharacters(in: .whitespaces)
         prefs.interests = selectedInterests
         prefs.temperatureUnit = temperatureUnit
+        prefs.rainTolerance = rainTolerance
         prefs.hasOnboarded = true
         onFinish()
     }

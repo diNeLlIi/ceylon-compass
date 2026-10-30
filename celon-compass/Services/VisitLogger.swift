@@ -30,7 +30,8 @@ struct VisitLogger {
 
     func update(_ record: VisitRecord, rating: Int16, note: String?) throws {
         record.rating = rating
-        record.note = note
+        applyNote(note, to: record)
+        record.touch()
         try save()
     }
 
@@ -83,13 +84,32 @@ struct VisitLogger {
         record.destination = destination
         record.visitDate = date
         record.rating = rating
-        record.note = note
+        record.stopName = destination.name
+        record.latitude = destination.latitude
+        record.longitude = destination.longitude
+        applyNote(note, to: record)
+        record.touch()
         return record
+    }
+
+    private func applyNote(_ text: String?, to record: VisitRecord) {
+        if let text, !text.isEmpty {
+            let existing = record.note ?? TravelNote(context: context)
+            if existing.id == nil { existing.id = UUID() }
+            existing.text = text
+            existing.source = "manual"
+            existing.touch()
+            record.note = existing
+        } else if let orphan = record.note, text == nil || text?.isEmpty == true {
+            context.delete(orphan)
+            record.note = nil
+        }
     }
 
     private func save() throws {
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error

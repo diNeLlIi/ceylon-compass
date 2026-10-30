@@ -15,6 +15,10 @@ struct ContentView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)]
     ) private var trips: FetchedResults<Itinerary>
 
+    private var completedCount: Int {
+        trips.filter { $0.completedAt != nil }.count
+    }
+
     var body: some View {
         TabView(selection: $router.selection) {
             Tab(AppTab.explore.title, systemImage: AppTab.explore.symbol, value: AppTab.explore) {
@@ -39,9 +43,10 @@ struct ContentView: View {
         .environment(router)
         .task {
             try? await AuthService.shared.signInAnonymouslyIfNeeded()
+            try? UserProfileStore.shared.ensureProfile()
             try? await CatalogSeeder.seedIfNeeded()
         }
-        .task(id: "\(trips.count)-\(PreferencesStore.shared.tripRemindersEnabled)") {
+        .task(id: "\(trips.count)-\(completedCount)-\(PreferencesStore.shared.tripRemindersEnabled)") {
             guard PreferencesStore.shared.tripRemindersEnabled,
                   let trip = ActiveTripResolver.current(Array(trips))
             else { return }

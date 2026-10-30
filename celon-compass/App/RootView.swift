@@ -51,6 +51,15 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: lockState.isLocked)
         .animation(.easeInOut(duration: 0.3), value: showOnboarding)
+        .preferredColorScheme(colorScheme)
+    }
+
+    private var colorScheme: ColorScheme? {
+        switch PreferencesStore.shared.appearanceMode {
+        case .system: nil
+        case .light: .light
+        case .dark: .dark
+        }
     }
 
     @ViewBuilder

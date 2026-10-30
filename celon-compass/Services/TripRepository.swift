@@ -24,8 +24,10 @@ struct TripRepository {
         trip.title = title
         trip.createdAt = Date()
         trip.status = "planned"
+        trip.touch()
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error
@@ -37,9 +39,26 @@ struct TripRepository {
     func deleteTrip(_ trip: Itinerary) async throws {
         try await guardian.perform(reason: "Confirm deleting this trip") {
             guard !trip.isDeleted else { return }
+            // Record a tombstone for sync propagation if the trip has a remoteID
+            if let remoteID = trip.remoteID {
+                let tombstone = Tombstone(context: context)
+                tombstone.id = UUID()
+                tombstone.path = "trips/\(remoteID)"
+                tombstone.createdAt = Date()
+                // Also tombstone its stops
+                for stop in (trip.stops as? Set<ItineraryStop>) ?? [] {
+                    if let stopRemoteID = stop.remoteID {
+                        let st = Tombstone(context: context)
+                        st.id = UUID()
+                        st.path = "trips/\(remoteID)/stops/\(stopRemoteID)"
+                        st.createdAt = Date()
+                    }
+                }
+            }
             context.delete(trip)
             do {
                 try context.save()
+                SyncCoordinator.shared.enqueue()
             } catch {
                 context.rollback()
                 throw error
@@ -60,8 +79,11 @@ struct TripRepository {
         stop.sortOrder = sortIndex
         stop.destination = poi.destination
         stop.itinerary = trip
+        stop.touch()
+        trip.touch()
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error
@@ -69,12 +91,14 @@ struct TripRepository {
         return stop
     }
 
-       func reorder(_ stops: [ItineraryStop]) throws {
+    func reorder(_ stops: [ItineraryStop]) throws {
         for (index, stop) in stops.enumerated() {
             stop.sortOrder = Int16(index)
+            stop.touch()
         }
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error
@@ -83,11 +107,14 @@ struct TripRepository {
 
     func moveStop(_ stop: ItineraryStop, to newDate: Date) throws {
         stop.date = newDate
+        stop.touch()
         if let trip = stop.itinerary {
             syncDateRange(for: trip)
+            trip.touch()
         }
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error
@@ -103,8 +130,10 @@ struct TripRepository {
 
     func renameTrip(_ trip: Itinerary, to title: String) throws {
         trip.title = title
+        trip.touch()
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error
@@ -112,9 +141,19 @@ struct TripRepository {
     }
 
     func deleteStop(_ stop: ItineraryStop) throws {
+        // Tombstone for sync propagation
+        if let remoteID = stop.remoteID, let tripRemoteID = stop.itinerary?.remoteID {
+            let tombstone = Tombstone(context: context)
+            tombstone.id = UUID()
+            tombstone.path = "trips/\(tripRemoteID)/stops/\(remoteID)"
+            tombstone.createdAt = Date()
+        }
+        let trip = stop.itinerary
         context.delete(stop)
+        trip?.touch()
         do {
             try context.save()
+            SyncCoordinator.shared.enqueue()
         } catch {
             context.rollback()
             throw error

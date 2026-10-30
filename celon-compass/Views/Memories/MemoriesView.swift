@@ -4,7 +4,7 @@
 //
 
 import SwiftUI
-internal import CoreData
+import CoreData
 
 struct MemoriesView: View {
     private enum MemoriesSection: String, CaseIterable, Identifiable {
@@ -15,12 +15,16 @@ struct MemoriesView: View {
     }
 
     @State private var section: MemoriesSection = .memories
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \VisitRecord.visitDate, ascending: false)],
+        animation: .default
+    ) private var records: FetchedResults<VisitRecord>
 
     var body: some View {
         NavigationStack {
             Group {
                 switch section {
-                case .memories: memoriesPlaceholder
+                case .memories: memoriesContent
                 case .history: TripHistoryListView()
                 }
             }
@@ -47,12 +51,136 @@ struct MemoriesView: View {
         }
     }
 
+    @ViewBuilder
+    private var memoriesContent: some View {
+        let memoriesWithContent = records.filter { $0.rating > 0 || $0.note != nil || $0.photoData != nil }
+        if memoriesWithContent.isEmpty {
+            memoriesPlaceholder
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    ForEach(memoriesWithContent, id: \.objectID) { record in
+                        MemoryCard(record: record)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 12)
+            }
+        }
+    }
+
     private var memoriesPlaceholder: some View {
         ContentUnavailableView(
-            "Memories are coming soon",
+            "No memories yet",
             systemImage: "square.on.square",
-            description: Text("Keep your notes and photos from every place you've visited.")
+            description: Text("Complete a trip and rate your stops to start building memories.")
         )
+    }
+}
+
+//Memory Card
+
+private struct MemoryCard: View {
+    let record: VisitRecord
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            imageSlot
+            HStack {
+                Text(record.stopName ?? "Unknown place")
+                    .font(.headline)
+                Spacer()
+                starDisplay
+            }
+
+            // Date
+            if let date = record.capturedAt ?? record.visitDate {
+                Text(date, format: .dateTime.month(.abbreviated).day().year())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // Note
+            if let noteText = record.note?.text, !noteText.isEmpty {
+                Text(noteText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            }
+
+            // Vision suggestion
+            if let suggestion = record.suggestedStopName {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.caption2)
+                    Text(record.matchConfidence > 0.5 ? suggestion : "Might be \(suggestion)")
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    @ViewBuilder
+    private var imageSlot: some View {
+        if let thumbnailData = record.thumbnailData, let image = UIImage(data: thumbnailData) {
+            // Case 1: saliency crop
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(height: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else if let photoData = record.photoData, let image = UIImage(data: photoData) {
+            // Case 2: full image
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(height: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        } else if record.remoteID != nil {
+            // Case 3: pulled from Firebase, photo on original device
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(.systemGray5))
+                    .frame(height: 100)
+                VStack(spacing: 6) {
+                    Image(systemName: categoryIcon)
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("Photo saved on original device")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        // Case 4: local memory with no photo — no image slot at all
+    }
+
+    private var starDisplay: some View {
+        HStack(spacing: 2) {
+            ForEach(1...5, id: \.self) { star in
+                Image(systemName: star <= record.rating ? "star.fill" : "star")
+                    .font(.caption)
+                    .foregroundStyle(star <= record.rating ? AppBrand.amber : Color(.systemGray4))
+            }
+        }
+    }
+
+    private var categoryIcon: String {
+        guard let dest = record.destination, let category = dest.category else {
+            return "mappin.circle"
+        }
+        switch category.lowercased() {
+        case "beach": return "water.waves"
+        case "mountain": return "mountain.2"
+        case "heritage": return "building.columns"
+        case "wildlife": return "pawprint"
+        case "waterfalls": return "drop.triangle"
+        case "temples": return "building"
+        default: return "mappin.circle"
+        }
     }
 }
 

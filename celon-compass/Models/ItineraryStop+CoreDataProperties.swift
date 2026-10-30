@@ -24,6 +24,9 @@ extension ItineraryStop {
     @NSManaged public var distanceOffRoute: Double
     @NSManaged public var hasConflict: Bool
     @NSManaged public var conflictKind: String?
+    @NSManaged public var remoteID: String?
+    @NSManaged public var updatedAt: Date?
+    @NSManaged public var pendingSync: Bool
     @NSManaged public var itinerary: Itinerary?
     @NSManaged public var destination: Destination?
     @NSManaged public var travelNote: TravelNote?

@@ -19,6 +19,7 @@ struct ItineraryView: View {
     @State private var deleteError: String?
     @State private var showRenameAlert = false
     @State private var renameDraft = ""
+    @State private var showCompleteTripSheet = false
 
     init(trip: Itinerary) {
         self.trip = trip
@@ -141,6 +142,14 @@ struct ItineraryView: View {
                         )
                     }
 
+                    if trip.completedAt == nil {
+                        Button {
+                            showCompleteTripSheet = true
+                        } label: {
+                            Label("Complete Trip", systemImage: "checkmark.circle")
+                        }
+                    }
+
                     Divider()
 
                     Button(role: .destructive) {
@@ -154,6 +163,9 @@ struct ItineraryView: View {
             }
         }
         .task(id: stops.count) { await viewModel.loadForecasts(for: Array(stops)) }
+        .sheet(isPresented: $showCompleteTripSheet) {
+            CompleteTripSheet(trip: trip)
+        }
         .confirmationDialog(
             "Delete this trip?",
             isPresented: $showDeleteConfirmation,

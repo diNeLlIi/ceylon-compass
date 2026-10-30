@@ -51,6 +51,14 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         }
     }
 
+    // Stops monitoring geofences for stops of a completed trip
+    func stopMonitoring(_ stops: [ItineraryStop]) {
+        let stopIDs = Set(stops.compactMap { $0.id?.uuidString })
+        for region in manager.monitoredRegions where stopIDs.contains(region.identifier) {
+            manager.stopMonitoring(for: region)
+        }
+    }
+
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         authorizationStatus = manager.authorizationStatus
     }

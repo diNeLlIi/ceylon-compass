@@ -239,7 +239,7 @@ struct VisitedSheet: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             draftRating = rating
-            note = pin.visit?.note ?? ""
+            note = pin.visit?.note?.text ?? ""
         }
     }
 

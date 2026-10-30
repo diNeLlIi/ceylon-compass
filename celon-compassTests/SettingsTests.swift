@@ -123,30 +123,32 @@ struct CacheServiceTests {
 //preferences
 @MainActor
 struct PreferencesStoreTests {
-    @Test func defaults() {
+    @Test func localDefaults() {
         let store = PreferencesStore(defaults: makeDefaults())
-        #expect(store.temperatureUnit == .celsius)
         #expect(!store.weatherAlertsEnabled)
         #expect(!store.tripRemindersEnabled)
+        #expect(!store.faceIDLockEnabled)
     }
 
-    @Test func valuesPersistAcrossInstances() {
+    @Test func localValuesPersistAcrossInstances() {
         let defaults = makeDefaults()
         let first = PreferencesStore(defaults: defaults)
-        first.temperatureUnit = .fahrenheit
         first.weatherAlertsEnabled = true
         first.tripRemindersEnabled = true
+        first.faceIDLockEnabled = true
 
         let second = PreferencesStore(defaults: defaults)
-        #expect(second.temperatureUnit == .fahrenheit)
         #expect(second.weatherAlertsEnabled)
         #expect(second.tripRemindersEnabled)
+        #expect(second.faceIDLockEnabled)
     }
 
-    @Test func unknownStoredUnitFallsBackToCelsius() {
-        let defaults = makeDefaults()
-        defaults.set("kelvin", forKey: PreferencesStore.Key.temperatureUnit)
-        #expect(PreferencesStore(defaults: defaults).temperatureUnit == .celsius)
+
+    @Test func syncedKeysDelegateToUserProfileStore() {
+        let store = PreferencesStore(defaults: makeDefaults())
+        // These read from UserProfileStore.shared — which has model defaults.
+        #expect(store.temperatureUnit == .celsius)
+        #expect(store.rainTolerance == .medium)
     }
 }
 
