@@ -70,23 +70,23 @@ struct ItineraryView: View {
                     .listRowSeparator(.hidden)
                 }
 
-                suitabilityChart
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+//                suitabilityChart
+//                    .listRowInsets(EdgeInsets())
+//                    .listRowBackground(Color.clear)
+//                    .listRowSeparator(.hidden)
             }
             
             
             ForEach(daySections) { section in
                 Section {
                     ForEach(section.stops) { stop in
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(alignment: .top, spacing: 10) {
-                                timelineMarker(
-                                    index: globalIndex(of: stop),
-                                    isLast: isLastStopOverall(stop),
-                                    severity: conflictSeverity(for: stop)
-                                )
+                        HStack(alignment: .top, spacing: 10) {
+                            timelineMarker(
+                                index: globalIndex(of: stop),
+                                isLast: isLastStopOverall(stop),
+                                severity: conflictSeverity(for: stop)
+                            )
+                            VStack(alignment: .leading, spacing: 6) {
                                 StopRow(
                                     title: stop.poiName ?? "Unknown",
                                     time: stop.date?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)),
@@ -96,16 +96,14 @@ struct ItineraryView: View {
                                     forecastUnavailableLabel: weatherFallbackLabel(for: stop),
                                     detailedForecast: true,
                                     isGem: stop.poiSource == POI.Source.osm.rawValue,
-                                    conflictSeverity: conflictSeverity(for: stop),
-                                    accessory: .dragHandle
+                                    conflictSeverity: conflictSeverity(for: stop)
                                 )
-                            }
-                            if let next = nextStop(after: stop) {
-                                travelCaptionRow(from: stop, to: next)
-                                    .padding(.leading, 48)
+                                if let next = nextStop(after: stop) {
+                                    travelCaptionRow(from: stop, to: next)
+                                }
                             }
                         }
-                        .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: Self.stopRowGap, trailing: 16))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
@@ -119,6 +117,7 @@ struct ItineraryView: View {
             }
         }
         .listStyle(.plain)
+        .listSectionSpacing(0)
         .scrollContentBackground(.hidden)
         .background(AppBrand.canvas)
         .navigationTitle("Trip")
@@ -196,28 +195,39 @@ struct ItineraryView: View {
 
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(trip.title ?? "Untitled trip")
                     .font(.largeTitle.bold())
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
                 Button {
                     renameDraft = trip.title ?? ""
                     showRenameAlert = true
                 } label: {
                     Image(systemName: "pencil")
-                        .font(.subheadline)
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
+                        .padding(8)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Rename trip")
+                Spacer(minLength: 0)
             }
 
-            if let start = trip.startDate, let end = trip.endDate {
-                Text("\(dateRangeText(start: start, end: end)) · \(stops.count) stop\(stops.count == 1 ? "" : "s")")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+            Text(subtitleText)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .padding(.horizontal)
-        .padding(.top, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
+    }
+
+    private var subtitleText: String {
+        let countText = "\(stops.count) stop\(stops.count == 1 ? "" : "s")"
+        guard let start = trip.startDate, let end = trip.endDate else { return countText }
+        return "\(dateRangeText(start: start, end: end)) · \(countText)"
     }
 
     @ViewBuilder
@@ -278,6 +288,9 @@ struct ItineraryView: View {
         return nil
     }
 
+   
+    private static let stopRowGap: CGFloat = 10
+
     private func timelineMarker(index: Int, isLast: Bool, severity: StopRow.ConflictSeverity) -> some View {
         VStack(spacing: 0) {
             Text("\(index + 1)")
@@ -287,12 +300,14 @@ struct ItineraryView: View {
                 .background(severity == .severe ? AppBrand.destructiveSolid : AppBrand.tealTop, in: Circle())
             if !isLast {
                 Rectangle()
-                    .fill(Color(.separator))
-                    .frame(width: 1.5)
+                    .fill(AppBrand.hairline)
+                    .frame(width: 2)
                     .frame(maxHeight: .infinity)
             }
         }
-        .padding(.top, 6)
+        .frame(width: 24)
+        .padding(.top, 8)
+        .padding(.bottom, isLast ? 0 : -Self.stopRowGap)
     }
 
     private func travelCaptionRow(from: ItineraryStop, to: ItineraryStop) -> some View {
@@ -303,6 +318,7 @@ struct ItineraryView: View {
         return Label(travelText(estimate: estimate), systemImage: "clock")
             .font(.caption2)
             .foregroundStyle(.secondary)
+            .labelStyle(.titleAndIcon)
     }
 
     private func travelText(estimate: RouteEstimate) -> String {
@@ -327,7 +343,7 @@ struct ItineraryView: View {
     private func moveActionTitle(for banner: ItineraryViewModel.Banner) -> String {
         let weekday = banner.suggestedDate.formatted(.dateTime.weekday(.abbreviated).day())
         let condition = banner.suggestedDateIsClear ? "clear" : "better odds"
-        return "Move \(banner.stopToMove.poiName ?? "stop") to \(weekday) · \(condition)"
+        return "Move to \(weekday) · \(condition)"
     }
 
     private func deleteTrip() {
@@ -359,9 +375,9 @@ struct ItineraryView: View {
         let sameMonth = calendar.isDate(start, equalTo: end, toGranularity: .month)
             && calendar.isDate(start, equalTo: end, toGranularity: .year)
         if sameMonth {
-            return "\(start.formatted(.dateTime.month(.abbreviated).day())) – \(end.formatted(.dateTime.day())), \(end.formatted(.dateTime.year()))"
+            return "\(start.formatted(.dateTime.day()))–\(end.formatted(.dateTime.day())) \(end.formatted(.dateTime.month(.abbreviated).year()))"
         }
-        return "\(start.formatted(.dateTime.month(.abbreviated).day())) – \(end.formatted(.dateTime.month(.abbreviated).day().year()))"
+        return "\(start.formatted(.dateTime.day().month(.abbreviated))) – \(end.formatted(.dateTime.day().month(.abbreviated).year()))"
     }
 }
 

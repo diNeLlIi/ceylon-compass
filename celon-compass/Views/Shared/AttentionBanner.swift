@@ -15,36 +15,45 @@ struct AttentionBanner: View {
     let secondaryAction: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(title, systemImage: "exclamationmark.triangle.fill")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppBrand.destructive)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.footnote)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(AppBrand.destructive)
 
             Text(message)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Button(action: primaryAction) {
                     Text(primaryActionTitle)
-                        .font(.caption.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                        .frame(maxWidth: .infinity, minHeight: 24)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppBrand.destructive)
 
                 Button(action: secondaryAction) {
                     Text(secondaryActionTitle)
-                        .font(.caption.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                        .frame(minHeight: 24)
+                        .padding(.horizontal, 8)
                 }
                 .buttonStyle(.bordered)
-                .tint(.secondary)
+                .tint(AppBrand.heading)
             }
+            .padding(.top, 2)
         }
-        .padding(12)
+        .padding(14)
         .background(AppBrand.destructiveTint, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -57,7 +66,7 @@ struct AttentionBanner: View {
     AttentionBanner(
         title: "Saturday 14 Nov is overloaded",
         message: "Mirissa and Ella are both booked, and Ella has 80% rain with 45 km/h gusts.",
-        primaryActionTitle: "Move Ella to Mon 16 · clear",
+        primaryActionTitle: "Move to Mon 16 · clear",
         primaryAction: {},
         secondaryActionTitle: "Keep",
         secondaryAction: {}

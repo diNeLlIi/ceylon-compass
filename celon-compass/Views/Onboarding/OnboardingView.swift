@@ -43,8 +43,7 @@ struct OnboardingView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .ignoresSafeArea()
-        .background(Color.black)
+        .background(Color.black.ignoresSafeArea())
     }
 
     private func advance() {

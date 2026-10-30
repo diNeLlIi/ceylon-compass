@@ -39,6 +39,7 @@ struct StopRow: View {
                     Text(title)
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
+                        .layoutPriority(1)
                     if isGem {
                         Text("GEM")
                             .font(.system(size: 9, weight: .bold))
@@ -51,6 +52,8 @@ struct StopRow: View {
                         Text(time)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .fixedSize()
                     }
                     Spacer(minLength: 0)
                 }

@@ -95,11 +95,13 @@ struct ValueSlide: View {
         .clipped()
         .overlay {
             LinearGradient(
-                colors: [.clear, .clear, .black.opacity(0.4), .black.opacity(0.85)],
+                colors: [.clear, .clear, .black.opacity(0.35), .black.opacity(0.8)],
                 startPoint: .top,
                 endPoint: .bottom
             )
         }
+        
+        .ignoresSafeArea()
     }
 
     @ViewBuilder

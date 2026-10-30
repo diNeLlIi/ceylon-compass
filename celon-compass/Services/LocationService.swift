@@ -74,6 +74,13 @@ final class LocationService: NSObject, CLLocationManagerDelegate {
         request.fetchLimit = 1
         guard let stop = try? context.fetch(request).first else { return }
 
+        
+        if let destination = stop.destination {
+            Task { @MainActor in
+                VisitLogger(context: context).recordArrival(at: destination)
+            }
+        }
+
         let content = UNMutableNotificationContent()
         content.title = "Arriving at \(stop.poiName ?? "your next stop")"
         content.body = arrivalBody(for: stop)
