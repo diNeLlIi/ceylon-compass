@@ -22,7 +22,9 @@ enum CoreDataSync {
             dest.latitude = dto.latitude
             dest.longitude = dto.longitude
             dest.category = dto.category
-            dest.province = dto.province
+            // Canonicalised on the way in, so the Explore filter only ever compares against
+            // the 9 known strings — Firestore rows aren't version-controlled and can drift.
+            dest.province = Province.normalised(from: dto.province)?.rawValue ?? dto.province
             dest.district = dto.district
             dest.descriptionText = dto.descriptionText
             dest.imageURL = dto.imageURL

@@ -15,10 +15,17 @@ struct MemoriesView: View {
     }
 
     @State private var section: MemoriesSection = .memories
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.managedObjectContext) private var context
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \VisitRecord.visitDate, ascending: false)],
         animation: .default
     ) private var records: FetchedResults<VisitRecord>
+
+    @State private var openCardID: NSManagedObjectID?
+    @State private var editingRecord: VisitRecord?
+    @State private var recordPendingDelete: VisitRecord?
+    @State private var errorMessage: String?
 
     var body: some View {
         NavigationStack {
@@ -48,6 +55,41 @@ struct MemoriesView: View {
             .navigationDestination(for: Itinerary.self) { trip in
                 ItineraryView(trip: trip)
             }
+            .sheet(item: $editingRecord) { record in
+                MemoryEditSheet(record: record)
+            }
+            .confirmationDialog(
+                "Delete this memory?",
+                isPresented: Binding(
+                    get: { recordPendingDelete != nil },
+                    set: { if !$0 { recordPendingDelete = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Delete Memory", role: .destructive) {
+                    if let record = recordPendingDelete { delete(record) }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .alert(
+                "Memory not deleted",
+                isPresented: Binding(
+                    get: { errorMessage != nil },
+                    set: { if !$0 { errorMessage = nil } }
+                )
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage ?? "")
+            }
+        }
+    }
+
+    private func delete(_ record: VisitRecord) {
+        do {
+            try VisitLogger(context: context).delete(record)
+        } catch {
+            errorMessage = "Couldn't delete this memory. Try again."
         }
     }
 
@@ -58,15 +100,30 @@ struct MemoriesView: View {
             memoriesPlaceholder
         } else {
             ScrollView {
-                LazyVStack(spacing: 12) {
+                // One column on iPhone, adaptive on iPad: a single column of memory cards
+                // at 13" leaves most of the screen empty.
+                LazyVGrid(columns: memoryColumns, spacing: 12) {
                     ForEach(memoriesWithContent, id: \.objectID) { record in
-                        MemoryCard(record: record)
+                        SwipeActionsCard(
+                            id: record.objectID,
+                            openID: $openCardID,
+                            onEdit: { editingRecord = record },
+                            onDelete: { recordPendingDelete = record }
+                        ) {
+                            MemoryCard(record: record)
+                        }
                     }
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 12)
             }
         }
+    }
+
+    private var memoryColumns: [GridItem] {
+        horizontalSizeClass == .regular
+            ? [GridItem(.adaptive(minimum: 320), spacing: 12)]
+            : [GridItem(.flexible())]
     }
 
     private var memoriesPlaceholder: some View {

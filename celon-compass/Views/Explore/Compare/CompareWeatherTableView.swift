@@ -14,7 +14,9 @@ struct CompareWeatherTableView: View {
 
     private static let destColumnWidth: CGFloat = 92
     private static let cellWidth: CGFloat = 60
-    private static let rowHeight: CGFloat = 76
+    // Was 76. UV is its own line rather than a fourth value crammed into the old height,
+    // which already held an icon, a temperature and a rain figure.
+    private static let rowHeight: CGFloat = 98
 
     private var days: [Date] {
         let calendar = Calendar.current
@@ -102,10 +104,16 @@ struct CompareWeatherTableView: View {
             Text(destination.name ?? "Unknown")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(AppBrand.heading)
-                .lineLimit(1)
+                // Two lines rather than one: the taller UV row leaves the vertical space,
+                // and "Horton Plains" truncated to "Horton…" on a single line.
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
         }
-        .frame(width: Self.destColumnWidth, height: Self.rowHeight, alignment: .leading)
+        // Padding goes INSIDE the fixed width. Applied after .frame it added to the column,
+        // making it 102pt against the header's 92pt spacer and shifting every data column
+        // 10pt right of the date it belongs to.
         .padding(.leading, 10)
+        .frame(width: Self.destColumnWidth, height: Self.rowHeight, alignment: .leading)
     }
 
     @ViewBuilder
@@ -146,6 +154,9 @@ struct CompareWeatherTableView: View {
                 Text("\(forecast.rainProbability)%")
                     .font(.caption2)
                     .foregroundStyle(AppBrand.link)
+                Text("UV \(Int(forecast.uvIndex.rounded()))")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(UVBand.of(forecast.uvIndex).tint)
             } else {
                 Text("–")
                     .font(.caption)
@@ -154,6 +165,54 @@ struct CompareWeatherTableView: View {
         }
         .frame(width: Self.cellWidth, height: Self.rowHeight)
         .background(isBestWindow(day) ? AppBrand.accentTint : Color.clear)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(cellAccessibilityLabel(destination: destination, day: day))
+    }
+
+    private func cellAccessibilityLabel(destination: Destination, day: Date) -> String {
+        let dayText = day.formatted(.dateTime.weekday(.wide).day().month(.wide))
+        guard let forecast = forecast(for: destination, on: day) else {
+            return "\(destination.name ?? "Unknown"), \(dayText), no forecast"
+        }
+        let band = UVBand.of(forecast.uvIndex)
+        return "\(destination.name ?? "Unknown"), \(dayText), \(forecast.condition.label), "
+            + "\(Int(forecast.high.rounded())) degrees, \(forecast.rainProbability) percent rain, "
+            + "UV \(Int(forecast.uvIndex.rounded())), \(band.label.lowercased())"
+    }
+}
+
+// WHO bands. Never colour alone: the number and the band name both ship, because a
+// red "11" means nothing to a user who can't distinguish it from the amber one.
+enum UVBand {
+    case low, moderate, high, veryHigh, extreme
+
+    static func of(_ index: Double) -> UVBand {
+        switch index {
+        case ..<3: .low
+        case ..<6: .moderate
+        case ..<8: .high
+        case ..<11: .veryHigh
+        default: .extreme
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .low: "Low"
+        case .moderate: "Moderate"
+        case .high: "High"
+        case .veryHigh: "Very High"
+        case .extreme: "Extreme"
+        }
+    }
+
+    var tint: Color {
+        switch self {
+        case .low: AppBrand.success
+        case .moderate: AppBrand.accent
+        case .high: AppBrand.amber
+        case .veryHigh, .extreme: AppBrand.destructive
+        }
     }
 }
 

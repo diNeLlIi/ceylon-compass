@@ -31,7 +31,7 @@ enum AppTab: String, CaseIterable, Identifiable, Hashable {
         case .map: "map"
         case .trips: "briefcase"
         case .memories: "square.on.square"
-        case .settings: "sun.max"
+        case .settings: "gear"
         }
     }
 }

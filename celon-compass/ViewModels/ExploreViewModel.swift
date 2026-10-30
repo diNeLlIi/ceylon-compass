@@ -12,6 +12,9 @@ final class ExploreViewModel: ObservableObject {
     @Published private(set) var forecasts: [UUID: [DayForecast]] = [:]
     @Published var searchText = ""
     @Published var selectedCategory: DestinationCategory = .all
+    // Session-only on purpose: a province left selected from last launch would look like
+    // a missing catalog rather than an active filter.
+    @Published var selectedProvince: Province?
     @Published private(set) var isLoading = false
     @Published private(set) var loadErrorMessage: String?
     @Published private(set) var weatherDegraded = false
@@ -31,10 +34,60 @@ final class ExploreViewModel: ObservableObject {
     }
 
     var filteredDestinations: [Destination] {
-        destinations.filter { destination in
-            selectedCategory.matches(destination.category)
-                && (searchText.isEmpty || (destination.name ?? "").localizedCaseInsensitiveContains(searchText))
+        Self.filter(
+            destinations,
+            category: selectedCategory,
+            province: selectedProvince,
+            searchText: searchText
+        )
+    }
+
+    // Pure and static so the three-way AND can be tested without a view model, a catalog
+    // fetch, or a running UI. The one and only filtered list — no second array.
+    static func filter(
+        _ destinations: [Destination],
+        category: DestinationCategory,
+        province: Province?,
+        searchText: String
+    ) -> [Destination] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return destinations.filter { destination in
+            category.matches(destination.category)
+                && (province.map { $0.matches(destination.province) } ?? true)
+                && (query.isEmpty || (destination.name ?? "").localizedCaseInsensitiveContains(query))
         }
+    }
+
+    var hasActiveFilters: Bool {
+        selectedCategory != .all
+            || selectedProvince != nil
+            || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    func clearFilters() {
+        selectedCategory = .all
+        selectedProvince = nil
+        searchText = ""
+    }
+
+    // Counted against the category and search already in force, so the menu tells the user
+    // what each province would actually yield rather than its catalog total.
+    func destinationCount(for province: Province) -> Int {
+        Self.filter(
+            destinations,
+            category: selectedCategory,
+            province: province,
+            searchText: searchText
+        ).count
+    }
+
+    var emptyStateMessage: String {
+        let provinceText = selectedProvince.map { " in \($0.displayName)" } ?? ""
+        let categoryText = selectedCategory == .all ? "" : " for \(selectedCategory.rawValue)"
+        if provinceText.isEmpty && categoryText.isEmpty {
+            return "No destinations match your search."
+        }
+        return "No destinations\(provinceText)\(categoryText)."
     }
 
     var favouriteDestinations: [Destination] {

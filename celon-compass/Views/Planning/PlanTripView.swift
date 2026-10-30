@@ -89,6 +89,15 @@ struct PlanTripView: View {
                 statChip(systemImage: "clock", text: durationText)
                 statChip(systemImage: "calendar", text: viewModel.tripStartDate.formatted(.dateTime.month(.abbreviated).day()))
             }
+
+            if viewModel.isUsingFallbackOrigin {
+                Label(
+                    "Using \(DefaultOrigin.name) as start. Turn on location to plan from where you are.",
+                    systemImage: "location.slash"
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
         }
         .padding()
         .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -218,27 +227,27 @@ struct PlanTripView: View {
             }
             .padding(.horizontal)
 
-            if viewModel.gemStopsWithinRadius.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "sparkles")
-                        .font(.title2)
-                        .foregroundStyle(AppBrand.accent)
-                    Text(viewModel.isLoadingGems ? "Looking for gems…" : "No gems yet")
-                        .font(.subheadline.weight(.semibold))
-                    Text(
-                        viewModel.isLoadingGems
-                            ? "Checking OpenStreetMap for waterfalls, viewpoints, and temples along this route."
-                            : "Drag the radius slider to search for community-sourced spots along this route."
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
-                .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .padding(.horizontal)
-            } else {
+            switch viewModel.gemState {
+            case .loading:
+                gemPlaceholder(
+                    symbol: "sparkles",
+                    title: "Looking for gems…",
+                    message: "Checking OpenStreetMap for waterfalls, viewpoints, and temples along this route."
+                )
+            case .empty:
+                gemPlaceholder(
+                    symbol: "sparkles",
+                    title: "No gems within \(Int(viewModel.committedRadiusKm)) km",
+                    message: "Nothing community-mapped sits close to this route. Widen the radius to look further out."
+                )
+            case .failed:
+                gemPlaceholder(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load gems",
+                    message: "OpenStreetMap didn't respond. Your stops and forecast are unaffected.",
+                    retry: viewModel.retryGems
+                )
+            case .loaded:
                 VStack(spacing: 10) {
                     ForEach(Array(viewModel.gemStopsWithinRadius.enumerated()), id: \.element.id) { index, poi in
                         HStack(alignment: .top, spacing: 10) {
@@ -264,6 +273,38 @@ struct PlanTripView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
         }
+    }
+
+    private func gemPlaceholder(
+        symbol: String,
+        title: String,
+        message: String,
+        retry: (() -> Void)? = nil
+    ) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: symbol)
+                .font(.title2)
+                .foregroundStyle(AppBrand.accent)
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .multilineTextAlignment(.center)
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            if let retry {
+                Button("Try again", action: retry)
+                    .font(.caption.weight(.semibold))
+                    .buttonStyle(.bordered)
+                    .tint(AppBrand.accent)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .padding(.horizontal, 16)
+        .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal)
+        .accessibilityElement(children: .combine)
     }
 
     private var createItineraryBar: some View {

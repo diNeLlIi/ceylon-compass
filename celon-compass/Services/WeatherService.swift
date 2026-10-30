@@ -5,6 +5,7 @@
 
 import CoreData
 import Foundation
+import WidgetKit
 
 final class WeatherService: WeatherServicing {
     private let session: URLSession
@@ -67,6 +68,10 @@ final class WeatherService: WeatherServicing {
             try WeatherCache.save(destinationID: id, forecasts: forecasts, fetchedAt: fetchedAt, container: container)
             result[id] = forecasts
         }
+
+        // Only after a real network fetch — a pure cache hit returns above and changes
+        // nothing the widget could display differently.
+        WidgetCenter.shared.reloadAllTimelines()
 
         return result
     }

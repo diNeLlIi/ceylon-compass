@@ -60,6 +60,27 @@ enum GemCache {
     }
 
     
+    // Builds before the empty-result guard existed cached "[]" against a live key, which
+    // pinned an empty gem section for the full 7-day TTL. Runs once per install to drop them.
+    static func purgeEmptyPayloadsOnce(
+        defaults: UserDefaults = .standard,
+        container: NSPersistentContainer = PersistenceController.shared.container
+    ) {
+        let key = "gemCache.emptyPayloadsPurged"
+        guard !defaults.bool(forKey: key) else { return }
+        defaults.set(true, forKey: key)
+
+        let context = container.newBackgroundContext()
+        context.perform {
+            let request = GemQueryCache.fetchRequest()
+            guard let rows = try? context.fetch(request) else { return }
+            for row in rows where (decode(row.payload) ?? []).isEmpty {
+                context.delete(row)
+            }
+            try? context.save()
+        }
+    }
+
     static func cacheKey(from: Coordinate, to: Coordinate, radiusKm: Double) -> String {
         func rounded(_ value: Double) -> Double { (value * 1000).rounded() / 1000 }
         return "\(rounded(from.latitude)),\(rounded(from.longitude))"

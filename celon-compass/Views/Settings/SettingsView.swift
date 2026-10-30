@@ -200,9 +200,7 @@ struct SettingsView: View {
                     title: "Clear cache",
                     icon: "trash",
                     tint: AppBrand.destructive
-                ) {
-                    BiometricBadge(kind: model.biometry)
-                }
+                )
             }
             .disabled(!model.canClearCache)
             .accessibilityIdentifier("settings.clearCache")
@@ -241,7 +239,7 @@ struct SettingsView: View {
             Button {
                 PreferencesStore.shared.hasOnboarded = false
             } label: {
-                SettingsRow(title: "Reset onboarding", icon: "arrow.counterclockwise", tint: .orange)
+                SettingsRow(title: "Reset onboarding", icon: "arrow.counterclockwise", tint: .white)
             }
             .accessibilityIdentifier("settings.resetOnboarding")
             #endif

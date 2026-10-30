@@ -33,6 +33,17 @@ struct TripHeroCardView: View {
         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
     }
 
+    private var lifecycleBadge: some View {
+        let stage = trip.lifecycle()
+        return Text(stage.rawValue)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(stage.tint, in: Capsule())
+            .accessibilityLabel("\(stage.rawValue) trip")
+    }
+
     private var hero: some View {
         Color.clear
             .frame(height: 140)
@@ -52,6 +63,7 @@ struct TripHeroCardView: View {
             .overlay {
                 LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom)
             }
+            .overlay(alignment: .topLeading) { lifecycleBadge.padding(10) }
             .overlay(alignment: .topTrailing) {
                 if let badgeText = daysUntilText {
                     Text(badgeText)
@@ -188,4 +200,14 @@ struct TripHeroCardView: View {
     return TripHeroCardView(trip: trip, viewModel: MyTripsViewModel())
         .padding()
         .background(AppBrand.canvas)
+}
+
+extension Itinerary.Lifecycle {
+    var tint: Color {
+        switch self {
+        case .planning: AppBrand.linkSolid
+        case .active: AppBrand.successSolid
+        case .completed: AppBrand.navy
+        }
+    }
 }

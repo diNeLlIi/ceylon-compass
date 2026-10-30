@@ -52,6 +52,16 @@ final class ItineraryViewModel: ObservableObject {
         }
         guard !uniqueDestinations.isEmpty else { return }
         forecasts = (try? await weatherService.forecasts(for: uniqueDestinations)) ?? [:]
+        // Storm-risk flags are derived from the forecast cache, so a refresh that brings in
+        // new weather has to re-run the rules or the banner describes yesterday's forecast.
+        try? repository.recomputeConflicts(for: trip)
+    }
+
+    // "Keep" only silences a banner for the itinerary as it stood when the user dismissed it.
+    // Any edit to the stops invalidates that judgement, so the dismissal is dropped and the
+    // rules get to speak again. Deliberately in-memory: this must not survive a relaunch.
+    func clearDismissals() {
+        dismissedConflictDates.removeAll()
     }
 
     struct Banner {
@@ -157,10 +167,11 @@ final class ItineraryViewModel: ObservableObject {
         )
     }
 
+    // TripRepository recomputes conflict flags inside each mutation, so none of the
+    // callers below re-run the rules themselves.
     func resolveConflict(_ banner: Banner) {
         do {
             try repository.moveStop(banner.stopToMove, to: banner.suggestedDate)
-            try repository.recomputeConflicts(for: trip)
         } catch {
             errorMessage = "Couldn't move that stop. Try again."
         }
@@ -173,7 +184,6 @@ final class ItineraryViewModel: ObservableObject {
     func resolveDoubleBooked(_ notice: DoubleBookedNotice) {
         do {
             try repository.moveStop(notice.stopToMove, to: notice.suggestedDate)
-            try repository.recomputeConflicts(for: trip)
         } catch {
             errorMessage = "Couldn't move that stop. Try again."
         }
@@ -192,7 +202,6 @@ final class ItineraryViewModel: ObservableObject {
     func deleteStop(_ stop: ItineraryStop) {
         do {
             try repository.deleteStop(stop)
-            try repository.recomputeConflicts(for: trip)
         } catch {
             errorMessage = "Couldn't remove that stop."
         }

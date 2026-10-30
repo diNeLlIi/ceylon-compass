@@ -19,4 +19,21 @@ extension Itinerary {
     var needsReview: Bool {
         isCompleted && completedAt == nil
     }
+
+    /// Derived from dates on every read, never stored — a persisted stage would be wrong
+    /// the moment a trip's start date arrived with the app closed.
+    enum Lifecycle: String {
+        case planning = "Planning"
+        case active = "Active"
+        case completed = "Completed"
+    }
+
+    func lifecycle(now: Date = .now, calendar: Calendar = .current) -> Lifecycle {
+        if completedAt != nil { return .completed }
+        let today = calendar.startOfDay(for: now)
+        if let endDate, endDate < today { return .completed }
+        if let startDate, startDate > today { return .planning }
+        // No dates yet means nothing has been scheduled, so it is still being planned.
+        return startDate == nil ? .planning : .active
+    }
 }

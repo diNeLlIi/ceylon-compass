@@ -53,7 +53,6 @@ struct AddToTripIntent: AppIntent {
         tripObject.startDate = [tripObject.startDate, date].compactMap { $0 }.min()
         tripObject.endDate = [tripObject.endDate, date].compactMap { $0 }.max()
         try context.save()
-        try repository.recomputeConflicts(for: tripObject)
 
         return .result(dialog: "Added \(destination.name) to \(trip.title).")
     }

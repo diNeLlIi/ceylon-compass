@@ -48,7 +48,7 @@ struct CompareShareCardView: View {
 
             Spacer()
 
-            Text("Planned with WanderLanka")
+            Text("Planned with \(AppBrand.name)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

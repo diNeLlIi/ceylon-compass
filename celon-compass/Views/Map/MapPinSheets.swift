@@ -130,10 +130,8 @@ struct TripStopSheet: View {
 
     private func remove() {
         guard let stop = pin.stop else { return }
-        let trip = stop.itinerary
         do {
             try TripRepository(context: context).deleteStop(stop)
-            if let trip { try TripRepository(context: context).recomputeConflicts(for: trip) }
             UINotificationFeedbackGenerator().notificationOccurred(.success)
             dismiss()
         } catch {
@@ -258,9 +256,10 @@ struct VisitedSheet: View {
 
 //Search result
 
-struct DestinationQuickSheet: View {
-    let destination: Destination
-    let forecast: DayForecast?
+// Shared by the catalog sheet and the gem sheet. Takes a POI rather than a Destination
+// so an OpenStreetMap gem, which has no catalog row behind it, can be added the same way.
+struct AddStopToTripControl: View {
+    let poi: POI
 
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(
@@ -275,6 +274,118 @@ struct DestinationQuickSheet: View {
     private var candidateTrips: [Itinerary] {
         ActiveTripResolver.activeOrUpcoming(Array(allTrips))
     }
+
+    var body: some View {
+        Group {
+            // Starting a new trip belongs to Explore; the map only adds to trips that exist
+            if candidateTrips.isEmpty {
+                Text("No active trip yet. Start one from Explore, then add stops from here.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                button
+            }
+        }
+        .confirmationDialog("Add to which trip?", isPresented: $showTripPicker, titleVisibility: .visible) {
+            ForEach(candidateTrips, id: \.objectID) { trip in
+                Button(trip.title ?? "Untitled trip") { add(to: trip) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert(
+            "Couldn't add stop",
+            isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
+    private var button: some View {
+        Button {
+            if candidateTrips.count == 1 {
+                add(to: candidateTrips[0])
+            } else {
+                showTripPicker = true
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: addedTripTitle != nil ? "checkmark.circle.fill" : "plus.circle.fill")
+                Text(addedTripTitle != nil ? "Added" : "Add to Trip")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(AppBrand.accentTint, in: Capsule())
+            .foregroundStyle(AppBrand.accentStrong)
+        }
+        .buttonStyle(.plain)
+        .disabled(addedTripTitle != nil)
+    }
+
+    private func add(to trip: Itinerary) {
+        let repository = TripRepository(context: context)
+        let stopCount = (trip.stops as? Set<ItineraryStop>)?.count ?? 0
+        let date = trip.endDate.flatMap { Calendar.current.date(byAdding: .day, value: 1, to: $0) }
+            ?? Calendar.current.date(byAdding: .day, value: 1, to: .now)!
+        do {
+            try repository.addStop(to: trip, poi: poi, date: date, sortIndex: Int16(stopCount))
+            trip.startDate = [trip.startDate, date].compactMap { $0 }.min()
+            trip.endDate = [trip.endDate, date].compactMap { $0 }.max()
+            try context.save()
+            addedTripTitle = trip.title
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        } catch {
+            errorMessage = "Couldn't add this stop. Try again."
+        }
+    }
+}
+
+// A gem has no catalog row, so there is no image and no forecast to show — only the
+// name, what OpenStreetMap called it, and the same Add to Trip action.
+struct GemQuickSheet: View {
+    let gem: POI
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(AppBrand.amberTint)
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(AppBrand.amber)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(gem.name)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(AppBrand.heading)
+                    Text(gem.category ?? "Point of interest")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+
+            Text("Community-mapped spot. No forecast for this location.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            AddStopToTripControl(poi: gem)
+
+            Text("Location via OpenStreetMap contributors")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct DestinationQuickSheet: View {
+    let destination: Destination
+    let forecast: DayForecast?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -301,73 +412,10 @@ struct DestinationQuickSheet: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Starting a new trip belongs to Explore; the map only adds to trips that exist
-            if candidateTrips.isEmpty {
-                Text("No active trip yet. Start one from Explore, then add stops from here.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                addToTripButton
-            }
+            AddStopToTripControl(poi: POI(destination: destination))
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .confirmationDialog("Add to which trip?", isPresented: $showTripPicker, titleVisibility: .visible) {
-            ForEach(candidateTrips, id: \.objectID) { trip in
-                Button(trip.title ?? "Untitled trip") { add(to: trip) }
-            }
-            Button("Cancel", role: .cancel) {}
-        }
-        .alert(
-            "Couldn't add stop",
-            isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(errorMessage ?? "")
-        }
-    }
-
-    private var addToTripButton: some View {
-        Button(action: addToTripTapped) {
-            HStack(spacing: 6) {
-                Image(systemName: addedTripTitle != nil ? "checkmark.circle.fill" : "plus.circle.fill")
-                Text(addedTripTitle != nil ? "Added" : "Add to Trip")
-                    .font(.subheadline.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(AppBrand.accentTint, in: Capsule())
-            .foregroundStyle(AppBrand.accentStrong)
-        }
-        .buttonStyle(.plain)
-        .disabled(addedTripTitle != nil)
-    }
-
-    private func addToTripTapped() {
-        if candidateTrips.count == 1 {
-            add(to: candidateTrips[0])
-        } else {
-            showTripPicker = true
-        }
-    }
-
-    private func add(to trip: Itinerary) {
-        let repository = TripRepository(context: context)
-        let stopCount = (trip.stops as? Set<ItineraryStop>)?.count ?? 0
-        let date = trip.endDate.flatMap { Calendar.current.date(byAdding: .day, value: 1, to: $0) }
-            ?? Calendar.current.date(byAdding: .day, value: 1, to: .now)!
-        do {
-            try repository.addStop(to: trip, poi: POI(destination: destination), date: date, sortIndex: Int16(stopCount))
-            trip.startDate = [trip.startDate, date].compactMap { $0 }.min()
-            trip.endDate = [trip.endDate, date].compactMap { $0 }.max()
-            try context.save()
-            try repository.recomputeConflicts(for: trip)
-            addedTripTitle = trip.title
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        } catch {
-            errorMessage = "Couldn't add this stop. Try again."
-        }
     }
 
     @ViewBuilder

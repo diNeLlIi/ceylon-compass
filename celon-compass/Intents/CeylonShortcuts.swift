@@ -19,6 +19,17 @@ struct CeylonShortcuts: AppShortcutsProvider {
             systemImageName: "cloud.sun.fill"
         )
         AppShortcut(
+            intent: ShowItineraryIntent(),
+            phrases: [
+                "Show my itinerary in \(.applicationName)",
+                "Open my trip in \(.applicationName)"
+            ],
+            shortTitle: "Show Itinerary",
+            systemImageName: "list.bullet.rectangle"
+        )
+        // Kept as an extra alongside Show Itinerary: this one answers out loud without
+        // opening anything, which is the useful shape while driving.
+        AppShortcut(
             intent: NextStopIntent(),
             phrases: [
                 "What's my next stop in \(.applicationName)",

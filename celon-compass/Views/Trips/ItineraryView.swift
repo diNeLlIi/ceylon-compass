@@ -163,6 +163,8 @@ struct ItineraryView: View {
             }
         }
         .task(id: stops.count) { await viewModel.loadForecasts(for: Array(stops)) }
+        .refreshable { await viewModel.loadForecasts(for: Array(stops)) }
+        .onChange(of: stopsRevision) { _, _ in viewModel.clearDismissals() }
         .sheet(isPresented: $showCompleteTripSheet) {
             CompleteTripSheet(trip: trip)
         }
@@ -203,6 +205,14 @@ struct ItineraryView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+    }
+
+    // Changes on reorder, reschedule, add and delete — unlike stops.count, which a reorder
+    // leaves untouched. Drives the "Keep" dismissal reset.
+    private var stopsRevision: String {
+        stops
+            .map { "\($0.id?.uuidString ?? "")|\($0.date?.timeIntervalSince1970 ?? 0)|\($0.sortOrder)" }
+            .joined(separator: ",")
     }
 
     private var headerCard: some View {

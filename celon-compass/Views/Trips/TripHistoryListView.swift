@@ -134,7 +134,7 @@ struct TripHistoryListView: View {
         ContentUnavailableView(
             "No past trips yet",
             systemImage: "clock.arrow.circlepath",
-            description: Text("Trips move here once their last day has passed.")
+            //description: Text("Trips move here once their last day has passed.")
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

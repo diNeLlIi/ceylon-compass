@@ -19,6 +19,7 @@ struct RootView: View {
             if showOnboarding {
                 if showPreferences {
                     PreferencesSetupView {
+                        lockState.skipGateAfterOnboarding()
                         withAnimation(.easeInOut(duration: 0.4)) {
                             showOnboarding = false
                             showPreferences = false

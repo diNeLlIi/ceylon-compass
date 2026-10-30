@@ -54,6 +54,16 @@ final class AppLockState {
         apply(result)
     }
 
+    // Finishing onboarding counts as the first unlock. With the lock now defaulting to on,
+    // the gate would otherwise appear the instant the user finished setting the app up —
+    // a prompt to prove they are themselves, seconds after they chose their preferences.
+    // Backgrounding the app still locks it, so this only skips that one gate.
+    func skipGateAfterOnboarding() {
+        lockGeneration += 1
+        isAuthenticating = false
+        unlock(notice: nil)
+    }
+
     func lock() {
         guard PreferencesStore.shared.faceIDLockEnabled else { return }
         lockGeneration += 1

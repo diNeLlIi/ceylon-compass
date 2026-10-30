@@ -127,7 +127,20 @@ struct PreferencesStoreTests {
         let store = PreferencesStore(defaults: makeDefaults())
         #expect(!store.weatherAlertsEnabled)
         #expect(!store.tripRemindersEnabled)
-        #expect(!store.faceIDLockEnabled)
+        // Face ID lock ships on, unlike the two notification toggles.
+        #expect(store.faceIDLockEnabled)
+    }
+
+    @Test func faceIDLockCanBeTurnedOffAndStaysOff() {
+        let defaults = makeDefaults()
+        let first = PreferencesStore(defaults: defaults)
+        #expect(first.faceIDLockEnabled)
+
+        first.faceIDLockEnabled = false
+
+        // The registered default must not resurrect it: an explicit false has to survive
+        // a relaunch, which a plain `?? true` read would get wrong.
+        #expect(!PreferencesStore(defaults: defaults).faceIDLockEnabled)
     }
 
     @Test func localValuesPersistAcrossInstances() {

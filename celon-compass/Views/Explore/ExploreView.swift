@@ -10,17 +10,48 @@ private enum ExploreRoute: Hashable {
 
 struct ExploreView: View {
     @StateObject private var viewModel = ExploreViewModel()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(TabRouter.self) private var router
     @State private var isCompareMode = false
     @State private var compareSelection = CompareSelection()
     @State private var showCompare = false
     @State private var showNavigationTitle = false
 
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
+    private var isRegularWidth: Bool { horizontalSizeClass == .regular }
+
+    // Adaptive on iPad so the column count follows the actual width — a fixed 2-up grid
+    // at 13" landscape gives cards wider than they are tall.
+    private var columns: [GridItem] {
+        isRegularWidth
+            ? [GridItem(.adaptive(minimum: 240), spacing: 14)]
+            : [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
+    }
 
     var body: some View {
+        Group {
+            if isRegularWidth {
+                NavigationSplitView {
+                    ExploreSidebarView(
+                        selectedCategory: $viewModel.selectedCategory,
+                        selectedProvince: $viewModel.selectedProvince,
+                        countForProvince: viewModel.destinationCount(for:),
+                        matchCount: viewModel.filteredDestinations.count
+                    )
+                } detail: {
+                    exploreStack
+                }
+            } else {
+                exploreStack
+            }
+        }
+        .onChange(of: router.selection) { _, newSelection in
+            if newSelection == .explore {
+                viewModel.selectedCategory = .all
+            }
+        }
+    }
+
+    private var exploreStack: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
@@ -37,7 +68,14 @@ struct ExploreView: View {
                         )
                         .padding(.top, 40)
                     } else {
-                        CategoryChipsView(selectedCategory: $viewModel.selectedCategory)
+                        // On iPad these same two bindings live in the sidebar instead.
+                        if !isRegularWidth {
+                            CategoryChipsView(
+                                selectedCategory: $viewModel.selectedCategory,
+                                selectedProvince: $viewModel.selectedProvince,
+                                countForProvince: viewModel.destinationCount(for:)
+                            )
+                        }
 
                         bentoSection
 
@@ -171,6 +209,9 @@ struct ExploreView: View {
         !isCompareMode
             && viewModel.searchText.isEmpty
             && viewModel.selectedCategory == .all
+            // The bento ranks the whole catalog, so it would show places outside the
+            // province the user just filtered to.
+            && viewModel.selectedProvince == nil
             && viewModel.todaysPick != nil
     }
 
@@ -248,14 +289,20 @@ struct ExploreView: View {
 
     @ViewBuilder
     private var emptyState: some View {
-        if !viewModel.searchText.isEmpty {
-            ContentUnavailableView.search(text: viewModel.searchText)
-        } else {
-            ContentUnavailableView(
-                "No destinations",
-                systemImage: "safari",
-                description: Text("No destinations in this category yet.")
-            )
+        ContentUnavailableView {
+            Label("No destinations", systemImage: "safari")
+        } description: {
+            Text(viewModel.emptyStateMessage)
+        } actions: {
+            // A province/category pair that matches nothing is easy to reach and hard to
+            // back out of one control at a time, so the reset clears all three at once.
+            if viewModel.hasActiveFilters {
+                Button("Clear filters") {
+                    withAnimation(.easeInOut(duration: 0.2)) { viewModel.clearFilters() }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppBrand.tealMid)
+            }
         }
     }
 }

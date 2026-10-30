@@ -20,6 +20,8 @@ struct TripListView: View {
     @State private var tripPendingDelete: Itinerary?
     @State private var errorMessage: String?
     @State private var searchText = ""
+    @State private var path = NavigationPath()
+    @State private var openCardID: NSManagedObjectID?
 
     // Scoped to stops already on one of the user's own trips, active or past not the
     // full catalog. My Trips searches what you've planned, not what you could plan.
@@ -40,7 +42,7 @@ struct TripListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if !searchText.isEmpty {
                     searchResults
@@ -144,15 +146,23 @@ struct TripListView: View {
         ScrollView {
             VStack(spacing: 14) {
                 ForEach(activeUpcomingTrips) { trip in
-                    NavigationLink(value: trip) {
-                        TripHeroCardView(trip: trip, viewModel: viewModel)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            tripPendingDelete = trip
-                        } label: {
-                            Label("Delete Trip", systemImage: "trash")
+                    SwipeActionsCard(
+                        id: trip.objectID,
+                        openID: $openCardID,
+                        cornerRadius: 20,
+                        onEdit: { path.append(trip) },
+                        onDelete: { tripPendingDelete = trip }
+                    ) {
+                        NavigationLink(value: trip) {
+                            TripHeroCardView(trip: trip, viewModel: viewModel)
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                tripPendingDelete = trip
+                            } label: {
+                                Label("Delete Trip", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -180,7 +190,7 @@ struct TripListView: View {
             VStack(spacing: 6) {
                 Text(hasPastTrips ? "Nothing coming up" : "No trips yet")
                     .font(.title3.weight(.semibold))
-                Text("Pick a few destinations and WanderLanka will find the days with the best weather across all of them.")
+                Text("Pick a few destinations and \(AppBrand.name) will find the days with the best weather across all of them.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

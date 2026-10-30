@@ -122,6 +122,10 @@ final class PreferencesStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        // Face ID lock is on out of the box. register() rather than a hardcoded `?? true`
+        // so an explicit opt-out still reads back as false — bool(forKey:) cannot tell
+        // "the user turned it off" from "never set".
+        defaults.register(defaults: [Key.faceIDLock: true])
         weatherAlertsEnabled = defaults.bool(forKey: Key.weatherAlerts)
         tripRemindersEnabled = defaults.bool(forKey: Key.tripReminders)
         hasOnboarded = defaults.bool(forKey: Key.hasOnboarded)

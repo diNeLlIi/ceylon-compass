@@ -26,6 +26,7 @@ struct MapTabView: View {
     private var visits: FetchedResults<VisitRecord>
 
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     @State private var position: MapCameraPosition = .region(Self.sriLanka)
     @State private var visibleRegion: MKCoordinateRegion = Self.sriLanka
@@ -36,6 +37,7 @@ struct MapTabView: View {
     @State private var forecasts: [UUID: [DayForecast]] = [:]
     @State private var isLoadingWeather = false
     @State private var gemPOIs: [POI] = []
+    @State private var selectedGem: POI?
     @State private var gemLoadTask: Task<Void, Never>?
     @State private var mapSearchResults: [MKMapItem] = []
     @State private var mapSearchTask: Task<Void, Never>?
@@ -81,38 +83,20 @@ struct MapTabView: View {
 
     var body: some View {
         NavigationStack {
-            Map(position: $position) {
-                ForEach(pins) { pin in
-                    Annotation(pin.name, coordinate: pin.coordinate) {
-                        MapPinView(pin: pin)
-                            .onTapGesture { selectedPinID = pin.id }
+            Group {
+                if horizontalSizeClass == .regular {
+                    // iPad has the width to show where you're going and what's next at the
+                    // same time, instead of making the user tap a pin to find out.
+                    HStack(spacing: 0) {
+                        tripStopList
+                            .frame(width: 320)
+                        Divider()
+                        mapSurface
                     }
-                }
-
-                ForEach(gemPOIs) { gem in
-                    Annotation(gem.name, coordinate: CLLocationCoordinate2D(latitude: gem.coordinate.latitude, longitude: gem.coordinate.longitude)) {
-                        GemPin()
-                    }
-                }
-
-                if tripRouteCoordinates.count >= 2 {
-                    MapPolyline(coordinates: tripRouteCoordinates)
-                        .stroke(AppBrand.tealMid, lineWidth: 4)
+                } else {
+                    mapSurface
                 }
             }
-            .mapStyle(mapStyle.swiftUIStyle)
-            .mapControls {
-                MapUserLocationButton()
-                MapCompass()
-                MapScaleView()
-            }
-            .onMapCameraChange(frequency: .onEnd) { context in
-                visibleRegion = context.region
-                scheduleGemFetch()
-            }
-            .overlay(alignment: .center) { emptyStateCard }
-            .overlay(alignment: .bottom) { searchOverlay }
-            .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
             .brandToolbar()
@@ -138,7 +122,104 @@ struct MapTabView: View {
                 .presentationDetents([.height(300), .medium])
                 .presentationDragIndicator(.visible)
             }
+            .sheet(item: $selectedGem) { gem in
+                GemQuickSheet(gem: gem)
+                    .presentationDetents([.height(280)])
+                    .presentationDragIndicator(.visible)
+            }
         }
+    }
+
+    @ViewBuilder
+    private var tripStopList: some View {
+        if tripStops.isEmpty {
+            ContentUnavailableView(
+                "No active trip",
+                systemImage: "map",
+                description: Text("Plan a trip from Explore and its stops appear here.")
+            )
+        } else {
+            List {
+                Section(activeTrip?.title ?? "Trip") {
+                    ForEach(Array(tripStops.enumerated()), id: \.element.objectID) { index, stop in
+                        Button {
+                            focus(on: stop)
+                        } label: {
+                            StopRow(
+                                title: stop.poiName ?? "Unknown",
+                                time: stop.date?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)),
+                                forecast: forecast(for: stop),
+                                isGem: stop.poiSource == POI.Source.osm.rawValue
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .listRowBackground(
+                            selectedPinID == stop.id?.uuidString ? AppBrand.accentTint : Color.clear
+                        )
+                        .accessibilityHint("Stop \(index + 1). Centres the map on this stop.")
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .background(AppBrand.canvas)
+        }
+    }
+
+    private func forecast(for stop: ItineraryStop) -> DayForecast? {
+        guard let id = stop.destination?.id, let date = stop.date else { return nil }
+        return forecasts[id]?.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
+    }
+
+    private func focus(on stop: ItineraryStop) {
+        selectedPinID = stop.id?.uuidString
+        withAnimation {
+            position = .region(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: stop.poiLatitude, longitude: stop.poiLongitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+                )
+            )
+        }
+    }
+
+    private var mapSurface: some View {
+        Map(position: $position) {
+                ForEach(pins) { pin in
+                    Annotation(pin.name, coordinate: pin.coordinate) {
+                        MapPinView(pin: pin)
+                            .onTapGesture { selectedPinID = pin.id }
+                    }
+                }
+
+                ForEach(gemPOIs) { gem in
+                    Annotation(gem.name, coordinate: CLLocationCoordinate2D(latitude: gem.coordinate.latitude, longitude: gem.coordinate.longitude)) {
+                        GemPin()
+                            .onTapGesture { selectedGem = gem }
+                            .accessibilityLabel("\(gem.name), \(gem.category ?? "point of interest"), community gem")
+                    }
+                }
+
+                if tripRouteCoordinates.count >= 2 {
+                    MapPolyline(coordinates: tripRouteCoordinates)
+                        .stroke(AppBrand.tealMid, lineWidth: 4)
+                }
+            }
+            .mapStyle(mapStyle.swiftUIStyle)
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+                MapScaleView()
+            }
+            .onMapCameraChange(frequency: .onEnd) { context in
+                visibleRegion = context.region
+                scheduleGemFetch()
+            }
+            .overlay(alignment: .center) { emptyStateCard }
+            // No ignoresSafeArea here. It used to be applied after this overlay, which
+            // expanded the map *and* the search bar into the bottom safe area and hid the
+            // bar behind the tab bar. The tab bar is opaque, so bleeding the map under it
+            // was invisible anyway — the only thing it did was lose the search bar.
+            .overlay(alignment: .bottom) { searchOverlay }
     }
 
     @ViewBuilder
@@ -219,7 +300,9 @@ struct MapTabView: View {
 
     @ViewBuilder
     private var gemAttribution: some View {
-        if !gemPOIs.isEmpty && searchText.isEmpty {
+        // Shown whenever gem pins are on screen, searching or not — ODbL attribution is a
+        // licence condition, not a cosmetic caption that can be hidden to save space.
+        if !gemPOIs.isEmpty {
             Text("Gem locations via OpenStreetMap contributors")
                 .font(.caption2)
                 .padding(.horizontal, 10)

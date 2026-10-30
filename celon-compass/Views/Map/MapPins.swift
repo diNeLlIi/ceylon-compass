@@ -72,26 +72,19 @@ struct VisitedGhostPin: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            ZStack(alignment: .bottomTrailing) {
-                Circle()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: 30, height: 30)
-                    .overlay(Circle().stroke(.white.opacity(0.7), lineWidth: 2))
-                    .shadow(radius: 1, y: 1)
-                    .overlay {
-                        Image(systemName: Self.symbol(for: category))
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(AppBrand.heading.opacity(0.55))
-                    }
+            // No "visited" checkmark badge: the muted fill and faded label already read as
+            // past, and the badge collided with neighbouring pins at low zoom.
+            Circle()
+                .fill(.ultraThinMaterial)
+                .frame(width: 30, height: 30)
+                .overlay(Circle().stroke(.white.opacity(0.7), lineWidth: 2))
+                .shadow(radius: 1, y: 1)
+                .overlay {
+                    Image(systemName: Self.symbol(for: category))
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(AppBrand.heading.opacity(0.55))
+                }
 
-                Image(systemName: "checkmark")
-                    .font(.system(size: 7, weight: .black))
-                    .foregroundStyle(.white)
-                    .frame(width: 15, height: 15)
-                    .background(AppBrand.successSolid, in: Circle())
-                    .overlay(Circle().stroke(.white, lineWidth: 1.5))
-                    .offset(x: 3, y: 3)
-            }
             MapPinLabel(text: name)
                 .opacity(0.65)
         }

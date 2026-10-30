@@ -4,6 +4,7 @@
 //
 
 import CoreData
+import WidgetKit
 
 @MainActor
 struct TripRepository {
@@ -17,6 +18,14 @@ struct TripRepository {
         self.routing = routing
     }
 
+    // Every successful trip mutation ends here. The widget reads the same store but is a
+    // separate process with its own refresh budget, so without an explicit reload it keeps
+    // showing the old next stop until its timeline happens to expire.
+    private func didMutate() {
+        SyncCoordinator.shared.enqueue()
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
     @discardableResult
     func createTrip(title: String) throws -> Itinerary {
         let trip = Itinerary(context: context)
@@ -27,7 +36,7 @@ struct TripRepository {
         trip.touch()
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -58,7 +67,7 @@ struct TripRepository {
             context.delete(trip)
             do {
                 try context.save()
-                SyncCoordinator.shared.enqueue()
+                didMutate()
             } catch {
                 context.rollback()
                 throw error
@@ -81,9 +90,10 @@ struct TripRepository {
         stop.itinerary = trip
         stop.touch()
         trip.touch()
+        applyConflictFlags(for: trip)
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -96,9 +106,12 @@ struct TripRepository {
             stop.sortOrder = Int16(index)
             stop.touch()
         }
+        if let trip = stops.first?.itinerary {
+            applyConflictFlags(for: trip)
+        }
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -111,10 +124,11 @@ struct TripRepository {
         if let trip = stop.itinerary {
             syncDateRange(for: trip)
             trip.touch()
+            applyConflictFlags(for: trip)
         }
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -133,7 +147,7 @@ struct TripRepository {
         trip.touch()
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -151,9 +165,10 @@ struct TripRepository {
         let trip = stop.itinerary
         context.delete(stop)
         trip?.touch()
+        if let trip { applyConflictFlags(for: trip) }
         do {
             try context.save()
-            SyncCoordinator.shared.enqueue()
+            didMutate()
         } catch {
             context.rollback()
             throw error
@@ -163,7 +178,20 @@ struct TripRepository {
    
     // Priority when a stop is flagged by more than one rule: storm risk, travel-time,same day double booking
     func recomputeConflicts(for trip: Itinerary) throws {
-        let stops = Array((trip.stops as? Set<ItineraryStop>) ?? [])
+        applyConflictFlags(for: trip)
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
+        }
+    }
+
+    // The unsaved half of recomputeConflicts. Every mutation below calls this before its own
+    // save, so flags can never be one mutation stale and no call site has to remember to
+    // recompute. Deleted-but-unsaved stops are excluded: they're still in trip.stops here.
+    private func applyConflictFlags(for trip: Itinerary) {
+        let stops = Array((trip.stops as? Set<ItineraryStop>) ?? []).filter { !$0.isDeleted }
         let forecasts = cachedForecasts(for: stops)
 
         let stormIDs = ConflictRules.flagStormRisk(stops, forecasts: forecasts)
@@ -185,12 +213,6 @@ struct TripRepository {
                 stop.hasConflict = false
                 stop.conflictKind = nil
             }
-        }
-        do {
-            try context.save()
-        } catch {
-            context.rollback()
-            throw error
         }
     }
 

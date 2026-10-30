@@ -95,7 +95,6 @@ struct PlanFromCompareSheet: View {
                 let poi = POI(destination: pair.0)
                 try repository.addStop(to: trip, poi: poi, date: pair.1, sortIndex: Int16(index))
             }
-            try repository.recomputeConflicts(for: trip)
             onCreated(trip)
             dismiss()
         } catch {

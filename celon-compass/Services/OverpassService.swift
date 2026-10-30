@@ -71,14 +71,19 @@ final class OverpassService: OverpassServicing {
 
         do {
             let fetched = try await fetchFromOverpass(from: from, to: to, radiusKm: radiusKm)
-            try? GemCache.save(cacheKey: key, gems: fetched, fetchedAt: Date(), container: container)
+            // An empty result is never cached: a transient upstream hiccup that decodes to
+            // zero elements would otherwise pin "no gems" for the whole 7-day TTL.
+            if !fetched.isEmpty {
+                try? GemCache.save(cacheKey: key, gems: fetched, fetchedAt: Date(), container: container)
+            }
             return Self.dedupe(fetched, against: catalog).map(POI.init(gem:))
         } catch {
-            
             if let stale = GemCache.anyCached(forKey: key, container: container) {
                 return Self.dedupe(stale, against: catalog).map(POI.init(gem:))
             }
-            return []
+            // Rethrow rather than returning []: the caller has to be able to tell
+            // "the query worked and found nothing" from "the query failed".
+            throw error
         }
     }
 
