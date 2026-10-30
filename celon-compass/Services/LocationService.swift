@@ -9,14 +9,13 @@ import CoreData
 import CoreLocation
 import Observation
 import UserNotifications
+import WidgetKit
 
 struct ResolvedOrigin: Equatable {
     let coordinate: Coordinate
     let name: String
 }
 
-// What trip planning needs from Core Location, narrowed to one call so the view model
-// is testable without a CLLocationManager. Mirrors WeatherServicing / OverpassServicing.
 protocol OriginLocating {
     func resolveOrigin() async -> ResolvedOrigin?
 }
@@ -46,12 +45,10 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
 
     @ObservationIgnored private var oneShotWaiters: [CheckedContinuation<CLLocation?, Never>] = []
 
-    // One-shot fix for "start my trip from here". Deliberately not startUpdatingLocation:
-    // trip planning needs a single coordinate, not a stream, and a stream left running
-    // drains battery for the whole time the screen is open.
-    func currentLocationOnce(timeoutSeconds: Double = 8) async -> CLLocation? {
-        guard CLLocationManager.locationServicesEnabled() else { return nil }
 
+    func currentLocationOnce(timeoutSeconds: Double = 8) async -> CLLocation? {
+        // locationServicesEnabled() is a blocking call: if services are off,
+        // authorization is denied/restricted or requestLocation() fails via didFailWithError
         switch manager.authorizationStatus {
         case .notDetermined:
             manager.requestWhenInUseAuthorization()
@@ -61,7 +58,6 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
             break
         }
 
-        // A fix from the last minute is good enough to start a trip from and saves a GPS wake.
         if let cached = manager.location, cached.timestamp.timeIntervalSinceNow > -60 {
             currentLocation = cached
             return cached
@@ -75,8 +71,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
                     self.manager.requestLocation()
                 }
             }
-            // requestLocation() can silently never call back when the user dismisses the
-            // permission prompt without choosing, so the screen must not wait on it forever.
+
             group.addTask {
                 try? await Task.sleep(for: .seconds(timeoutSeconds))
                 return nil
@@ -96,8 +91,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
         return ResolvedOrigin(coordinate: coordinate, name: await Self.placeName(for: location))
     }
 
-    // CLGeocoder is rate-limited and offline-hostile, so a failure just drops the
-    // place name — the coordinate is still perfectly usable as an origin.
+    
     private static func placeName(for location: CLLocation) async -> String {
         let generic = "Current location"
         guard let placemark = try? await CLGeocoder().reverseGeocodeLocation(location).first else {
@@ -149,8 +143,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
         case .denied, .restricted:
             resumeOneShotWaiters(with: nil)
         case .authorizedWhenInUse, .authorizedAlways:
-            // The waiter asked before the prompt was answered, so its requestLocation() was
-            // dropped. Re-issue it now that we're allowed.
+            
             if !oneShotWaiters.isEmpty { manager.requestLocation() }
         default:
             break
@@ -162,7 +155,7 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
         resumeOneShotWaiters(with: locations.last)
     }
 
-    // Without this, a failed fix leaves currentLocationOnce() hanging until its timeout.
+    //  a failed fix leaves currentLocationOnce() hanging until its timeout without this
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         resumeOneShotWaiters(with: nil)
     }
@@ -188,6 +181,8 @@ final class LocationService: NSObject, CLLocationManagerDelegate, OriginLocating
                 VisitLogger(context: context).recordArrival(at: destination)
             }
         }
+
+        WidgetCenter.shared.reloadAllTimelines()
 
         let content = UNMutableNotificationContent()
         content.title = "Arriving at \(stop.poiName ?? "your next stop")"

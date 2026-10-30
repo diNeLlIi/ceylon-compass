@@ -10,17 +10,13 @@ private enum ExploreRoute: Hashable {
 
 struct ExploreView: View {
     @StateObject private var viewModel = ExploreViewModel()
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.isRegularWidth) private var isRegularWidth
     @Environment(TabRouter.self) private var router
     @State private var isCompareMode = false
     @State private var compareSelection = CompareSelection()
     @State private var showCompare = false
     @State private var showNavigationTitle = false
 
-    private var isRegularWidth: Bool { horizontalSizeClass == .regular }
-
-    // Adaptive on iPad so the column count follows the actual width — a fixed 2-up grid
-    // at 13" landscape gives cards wider than they are tall.
     private var columns: [GridItem] {
         isRegularWidth
             ? [GridItem(.adaptive(minimum: 240), spacing: 14)]

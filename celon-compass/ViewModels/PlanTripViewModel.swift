@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 final class PlanTripViewModel: ObservableObject {
-    // Four states, because a failed Overpass query must never render as "no gems nearby".
+    // Four states, because a failed Overpass query must never render as no gems nearby
     enum GemLoadState: Equatable {
         case loading
         case loaded
@@ -131,7 +131,7 @@ final class PlanTripViewModel: ObservableObject {
             guard !Task.isCancelled else { return }
             gemPOIs = fetched
             // Judged on what survives the corridor filter, not the raw fetch: gems can come
-            // back from a wide Overpass radius and still all fall outside the committed one.
+            // back from a wide Overpass radius and still all fall outside the committed one
             gemState = gemStopsWithinRadius.isEmpty ? .empty : .loaded
         } catch {
             guard !Task.isCancelled else { return }
@@ -152,7 +152,7 @@ final class PlanTripViewModel: ObservableObject {
             .map { POI(destination: $0) }
 
         // Gems are kicked off before the forecast await so the section isn't blocked
-        // behind a 7-day batch fetch. Dragging the slider replaces this task.
+        // behind a 7-day batch fetch. Dragging the slider replaces this task
         reloadGems()
 
         do {
@@ -166,15 +166,13 @@ final class PlanTripViewModel: ObservableObject {
         await resolveOrigin()
     }
 
-    // Colombo is already in place when this runs, so the screen never waits on a GPS fix.
     private func resolveOrigin() async {
         guard let resolved = await locator.resolveOrigin() else { return }
         guard resolved.coordinate != origin else { return }
         origin = resolved.coordinate
         originName = resolved.name
         isUsingFallbackOrigin = false
-        // The corridor and the route estimate both hang off origin, so the gem query
-        // that ran against Colombo is now wrong and has to be reissued.
+       
         reloadGems()
     }
 

@@ -15,7 +15,7 @@ struct MemoriesView: View {
     }
 
     @State private var section: MemoriesSection = .memories
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.isRegularWidth) private var isRegularWidth
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \VisitRecord.visitDate, ascending: false)],
@@ -107,8 +107,14 @@ struct MemoriesView: View {
                         SwipeActionsCard(
                             id: record.objectID,
                             openID: $openCardID,
-                            onEdit: { editingRecord = record },
-                            onDelete: { recordPendingDelete = record }
+                            actions: [
+                                SwipeAction(title: "Edit", systemImage: "pencil", tint: AppBrand.link) {
+                                    editingRecord = record
+                                },
+                                SwipeAction(title: "Delete", systemImage: "trash", tint: AppBrand.destructive, role: .destructive) {
+                                    recordPendingDelete = record
+                                }
+                            ]
                         ) {
                             MemoryCard(record: record)
                         }
@@ -121,7 +127,7 @@ struct MemoriesView: View {
     }
 
     private var memoryColumns: [GridItem] {
-        horizontalSizeClass == .regular
+        isRegularWidth
             ? [GridItem(.adaptive(minimum: 320), spacing: 12)]
             : [GridItem(.flexible())]
     }

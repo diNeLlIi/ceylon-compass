@@ -20,8 +20,6 @@ extension Itinerary {
         isCompleted && completedAt == nil
     }
 
-    /// Derived from dates on every read, never stored — a persisted stage would be wrong
-    /// the moment a trip's start date arrived with the app closed.
     enum Lifecycle: String {
         case planning = "Planning"
         case active = "Active"

@@ -31,12 +31,12 @@ struct ContentView: View {
             deepLinkedTrip = nil
         case .trip(let id):
             // A widget timeline or a Shortcut can outlive the trip it names, so an
-            // unmatched id falls back to the list rather than presenting nothing.
+            // unmatched id falls back to the list rather than presenting nothing
             deepLinkedTrip = trips.first { $0.id == id }
         }
     }
 
-    // Changes whenever a trip is added, removed, completed, renamed or rescheduled.
+    // Changes when a trip is added, removed, completed, renamed or rescheduled
     private var reminderSignature: String {
         trips
             .map { "\($0.id?.uuidString ?? "")|\($0.startDate?.timeIntervalSince1970 ?? 0)|\($0.endDate?.timeIntervalSince1970 ?? 0)|\($0.completedAt != nil)" }
@@ -94,8 +94,7 @@ struct ContentView: View {
                 .sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
             locationService.monitorStops(stops)
         }
-        // Keyed on the same signature as the geofence task, so creating, editing,
-        // deleting or completing a trip all rebuild the pending reminders.
+        
         .task(id: reminderSignature) {
             await TripReminderScheduler.reschedule(trips: Array(trips), context: viewContext)
         }

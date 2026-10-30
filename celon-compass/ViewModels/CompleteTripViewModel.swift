@@ -12,6 +12,7 @@ import CoreLocation
 import PhotosUI
 import SwiftUI
 import UIKit
+import WidgetKit
 
 @MainActor
 @Observable
@@ -146,6 +147,7 @@ final class CompleteTripViewModel {
 
             try context.save()
             SyncCoordinator.shared.enqueue()
+            WidgetCenter.shared.reloadAllTimelines()
 
             // Clean up geofences for this trip
             let stops = ((trip.stops as? Set<ItineraryStop>) ?? [])

@@ -23,8 +23,7 @@ struct TripListView: View {
     @State private var path = NavigationPath()
     @State private var openCardID: NSManagedObjectID?
 
-    // Scoped to stops already on one of the user's own trips, active or past not the
-    // full catalog. My Trips searches what you've planned, not what you could plan.
+
     private var matchingStops: [ItineraryStop] {
         guard !searchText.isEmpty else { return [] }
         let allStops = trips.flatMap { ($0.stops as? Set<ItineraryStop>) ?? [] }
@@ -150,8 +149,11 @@ struct TripListView: View {
                         id: trip.objectID,
                         openID: $openCardID,
                         cornerRadius: 20,
-                        onEdit: { path.append(trip) },
-                        onDelete: { tripPendingDelete = trip }
+                        actions: [
+                            SwipeAction(title: "Details", systemImage: "chevron.right", tint: AppBrand.link) {
+                                path.append(trip)
+                            }
+                        ]
                     ) {
                         NavigationLink(value: trip) {
                             TripHeroCardView(trip: trip, viewModel: viewModel)

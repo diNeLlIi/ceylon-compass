@@ -18,9 +18,7 @@ struct TripRepository {
         self.routing = routing
     }
 
-    // Every successful trip mutation ends here. The widget reads the same store but is a
-    // separate process with its own refresh budget, so without an explicit reload it keeps
-    // showing the old next stop until its timeline happens to expire.
+
     private func didMutate() {
         SyncCoordinator.shared.enqueue()
         WidgetCenter.shared.reloadAllTimelines()
@@ -187,10 +185,7 @@ struct TripRepository {
         }
     }
 
-    // The unsaved half of recomputeConflicts. Every mutation below calls this before its own
-    // save, so flags can never be one mutation stale and no call site has to remember to
-    // recompute. Deleted-but-unsaved stops are excluded: they're still in trip.stops here.
-    private func applyConflictFlags(for trip: Itinerary) {
+        private func applyConflictFlags(for trip: Itinerary) {
         let stops = Array((trip.stops as? Set<ItineraryStop>) ?? []).filter { !$0.isDeleted }
         let forecasts = cachedForecasts(for: stops)
 
@@ -216,9 +211,7 @@ struct TripRepository {
         }
     }
 
-    // Reads whatever's already cached (3h TTL, same as WeatherService):never fetches,
-    // recomputeConflicts stays synchronous and doesn't hit the network
-    private func cachedForecasts(for stops: [ItineraryStop]) -> [UUID: [DayForecast]] {
+      private func cachedForecasts(for stops: [ItineraryStop]) -> [UUID: [DayForecast]] {
         let destinationIDs = Set(stops.compactMap { $0.destination?.id })
         var result: [UUID: [DayForecast]] = [:]
         for id in destinationIDs {

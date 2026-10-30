@@ -9,8 +9,6 @@
 import Foundation
 import Observation
 
-// An App Intent with openAppWhenRun has no URL to hand the app, so it drops its
-// destination here and ContentView picks it up when the scene becomes active.
 @MainActor
 @Observable
 final class DeepLinkInbox {

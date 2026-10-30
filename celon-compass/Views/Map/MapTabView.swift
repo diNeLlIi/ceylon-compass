@@ -26,7 +26,7 @@ struct MapTabView: View {
     private var visits: FetchedResults<VisitRecord>
 
     @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.isRegularWidth) private var isRegularWidth
 
     @State private var position: MapCameraPosition = .region(Self.sriLanka)
     @State private var visibleRegion: MKCoordinateRegion = Self.sriLanka
@@ -84,9 +84,8 @@ struct MapTabView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if horizontalSizeClass == .regular {
-                    // iPad has the width to show where you're going and what's next at the
-                    // same time, instead of making the user tap a pin to find out.
+                if isRegularWidth {
+                    
                     HStack(spacing: 0) {
                         tripStopList
                             .frame(width: 320)
@@ -215,10 +214,6 @@ struct MapTabView: View {
                 scheduleGemFetch()
             }
             .overlay(alignment: .center) { emptyStateCard }
-            // No ignoresSafeArea here. It used to be applied after this overlay, which
-            // expanded the map *and* the search bar into the bottom safe area and hid the
-            // bar behind the tab bar. The tab bar is opaque, so bleeding the map under it
-            // was invisible anyway — the only thing it did was lose the search bar.
             .overlay(alignment: .bottom) { searchOverlay }
     }
 

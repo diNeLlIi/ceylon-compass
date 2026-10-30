@@ -12,6 +12,7 @@ struct PlanTripView: View {
     @Environment(\.managedObjectContext) private var context
     @Environment(\.dismiss) private var dismiss
     @State private var showItinerary = false
+    @State private var showTripCreated = false
 
     init(destination: Destination) {
         _viewModel = StateObject(wrappedValue: PlanTripViewModel(destination: destination))
@@ -55,6 +56,11 @@ struct PlanTripView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(viewModel.errorMessage ?? "")
+        }
+        .alert("Trip created", isPresented: $showTripCreated) {
+            Button("View Itinerary") { showItinerary = true }
+        } message: {
+            Text("\"\(viewModel.createdTrip?.title ?? "Your trip")\" is ready.")
         }
     }
 
@@ -320,7 +326,7 @@ struct PlanTripView: View {
 
             Button {
                 if viewModel.createItinerary(context: context) != nil {
-                    showItinerary = true
+                    showTripCreated = true
                 }
             } label: {
                 HStack {

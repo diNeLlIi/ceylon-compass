@@ -21,10 +21,11 @@ struct PreferencesSetupView: View {
         ZStack(alignment: .top) {
             AppBrand.canvas.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                header
-                preferencesCard
-                Spacer()
+            ScrollView {
+                VStack(spacing: 0) {
+                    header
+                    preferencesCard
+                }
             }
         }
     }

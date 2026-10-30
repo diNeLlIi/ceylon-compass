@@ -53,14 +53,11 @@ final class ItineraryViewModel: ObservableObject {
         guard !uniqueDestinations.isEmpty else { return }
         forecasts = (try? await weatherService.forecasts(for: uniqueDestinations)) ?? [:]
         // Storm-risk flags are derived from the forecast cache, so a refresh that brings in
-        // new weather has to re-run the rules or the banner describes yesterday's forecast.
+        // new weather has to re-run the rules or the banner describes yesterday's forecast
         try? repository.recomputeConflicts(for: trip)
     }
 
-    // "Keep" only silences a banner for the itinerary as it stood when the user dismissed it.
-    // Any edit to the stops invalidates that judgement, so the dismissal is dropped and the
-    // rules get to speak again. Deliberately in-memory: this must not survive a relaunch.
-    func clearDismissals() {
+      func clearDismissals() {
         dismissedConflictDates.removeAll()
     }
 
@@ -142,10 +139,7 @@ final class ItineraryViewModel: ObservableObject {
         )
     }
 
-    // The compact "Fix" notice — a same-day scheduling clash, not a hazard, so there's
-    // no "Keep" option: tapping Fix resolves it outright instead of asking the user to
-    // confirm they're happy to live with it
-    func doubleBookedNotice(from stops: [ItineraryStop]) -> DoubleBookedNotice? {
+       func doubleBookedNotice(from stops: [ItineraryStop]) -> DoubleBookedNotice? {
         let sections = daySections(from: stops)
         guard let section = sections.first(where: { section in
             !dismissedConflictDates.contains(section.date) && section.stops.contains { $0.conflictKind == "doubleBooked" }
@@ -167,8 +161,6 @@ final class ItineraryViewModel: ObservableObject {
         )
     }
 
-    // TripRepository recomputes conflict flags inside each mutation, so none of the
-    // callers below re-run the rules themselves.
     func resolveConflict(_ banner: Banner) {
         do {
             try repository.moveStop(banner.stopToMove, to: banner.suggestedDate)
@@ -204,6 +196,14 @@ final class ItineraryViewModel: ObservableObject {
             try repository.deleteStop(stop)
         } catch {
             errorMessage = "Couldn't remove that stop."
+        }
+    }
+
+    func reschedule(_ stop: ItineraryStop, to date: Date) {
+        do {
+            try repository.moveStop(stop, to: date)
+        } catch {
+            errorMessage = "Couldn't update that date."
         }
     }
 

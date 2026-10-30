@@ -14,12 +14,13 @@ struct ItineraryView: View {
     @FetchRequest private var stops: FetchedResults<ItineraryStop>
     @Environment(\.managedObjectContext) private var context
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.editMode) private var editMode
+    @Environment(\.isRegularWidth) private var isRegularWidth
+    @State private var editMode: EditMode = .inactive
     @State private var showDeleteConfirmation = false
     @State private var deleteError: String?
-    @State private var showRenameAlert = false
-    @State private var renameDraft = ""
     @State private var showCompleteTripSheet = false
+    @State private var showAddStopSheet = false
+    @State private var stopToReschedule: ItineraryStop?
 
     init(trip: Itinerary) {
         self.trip = trip
@@ -81,32 +82,10 @@ struct ItineraryView: View {
             ForEach(daySections) { section in
                 Section {
                     ForEach(section.stops) { stop in
-                        HStack(alignment: .top, spacing: 10) {
-                            timelineMarker(
-                                index: globalIndex(of: stop),
-                                isLast: isLastStopOverall(stop),
-                                severity: conflictSeverity(for: stop)
-                            )
-                            VStack(alignment: .leading, spacing: 6) {
-                                StopRow(
-                                    title: stop.poiName ?? "Unknown",
-                                    time: stop.date?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)),
-                                    note: stop.travelNotes,
-                                    imageURL: stop.destination?.imageURL.flatMap(URL.init(string:)),
-                                    forecast: viewModel.forecast(for: stop),
-                                    forecastUnavailableLabel: weatherFallbackLabel(for: stop),
-                                    detailedForecast: true,
-                                    isGem: stop.poiSource == POI.Source.osm.rawValue,
-                                    conflictSeverity: conflictSeverity(for: stop)
-                                )
-                                if let next = nextStop(after: stop) {
-                                    travelCaptionRow(from: stop, to: next)
-                                }
-                            }
-                        }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: Self.stopRowGap, trailing: 16))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+                        stopRowView(for: stop)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: Self.stopRowGap, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     }
                     .onMove { source, destination in
                         viewModel.reorder(day: section, from: source, to: destination)
@@ -120,6 +99,9 @@ struct ItineraryView: View {
         .listStyle(.plain)
         .listSectionSpacing(0)
         .scrollContentBackground(.hidden)
+        .environment(\.editMode, $editMode)
+        .frame(maxWidth: isRegularWidth ? 700 : .infinity)
+        .frame(maxWidth: .infinity)
         .background(AppBrand.canvas)
         .navigationTitle("Trip")
         .navigationBarTitleDisplayMode(.inline)
@@ -132,13 +114,19 @@ struct ItineraryView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
+                        showAddStopSheet = true
+                    } label: {
+                        Label("Add Stop", systemImage: "plus")
+                    }
+
+                    Button {
                         withAnimation {
-                            editMode?.wrappedValue = editMode?.wrappedValue == .active ? .inactive : .active
+                            editMode = editMode == .active ? .inactive : .active
                         }
                     } label: {
                         Label(
-                            editMode?.wrappedValue == .active ? "Done" : "Edit Stops",
-                            systemImage: editMode?.wrappedValue == .active ? "checkmark" : "pencil"
+                            editMode == .active ? "Done" : "Edit Stops",
+                            systemImage: editMode == .active ? "checkmark" : "pencil"
                         )
                     }
 
@@ -168,6 +156,14 @@ struct ItineraryView: View {
         .sheet(isPresented: $showCompleteTripSheet) {
             CompleteTripSheet(trip: trip)
         }
+        .sheet(isPresented: $showAddStopSheet) {
+            AddStopSheet(trip: trip)
+        }
+        .sheet(item: $stopToReschedule) { stop in
+            RescheduleStopSheet(stop: stop) { newDate in
+                viewModel.reschedule(stop, to: newDate)
+            }
+        }
         .confirmationDialog(
             "Delete this trip?",
             isPresented: $showDeleteConfirmation,
@@ -177,11 +173,6 @@ struct ItineraryView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("\"\(trip.title ?? "Untitled trip")\" and all its stops will be permanently removed.")
-        }
-        .alert("Rename trip", isPresented: $showRenameAlert) {
-            TextField("Trip name", text: $renameDraft)
-            Button("Save") { renameTrip() }
-            Button("Cancel", role: .cancel) {}
         }
         .alert(
             "Trip not deleted",
@@ -222,18 +213,6 @@ struct ItineraryView: View {
                     .font(.largeTitle.bold())
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
-                Button {
-                    renameDraft = trip.title ?? ""
-                    showRenameAlert = true
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(8)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Rename trip")
                 Spacer(minLength: 0)
             }
 
@@ -313,6 +292,39 @@ struct ItineraryView: View {
    
     private static let stopRowGap: CGFloat = 10
 
+    private func stopRowView(for stop: ItineraryStop) -> some View {
+        let severity = conflictSeverity(for: stop)
+        let time: String? = stop.date?.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+        let imageURL: URL? = stop.destination?.imageURL.flatMap { URL(string: $0) }
+        let isGem: Bool = stop.poiSource == POI.Source.osm.rawValue
+
+        return HStack(alignment: .top, spacing: 10) {
+            timelineMarker(
+                index: globalIndex(of: stop),
+                isLast: isLastStopOverall(stop),
+                severity: severity
+            )
+            VStack(alignment: .leading, spacing: 6) {
+                StopRow(
+                    title: stop.poiName ?? "Unknown",
+                    time: time,
+                    note: stop.travelNotes,
+                    imageURL: imageURL,
+                    forecast: viewModel.forecast(for: stop),
+                    forecastUnavailableLabel: weatherFallbackLabel(for: stop),
+                    detailedForecast: true,
+                    isGem: isGem,
+                    conflictSeverity: severity
+                )
+                .contentShape(Rectangle())
+                .onTapGesture { stopToReschedule = stop }
+                if let next = nextStop(after: stop) {
+                    travelCaptionRow(from: stop, to: next)
+                }
+            }
+        }
+    }
+
     private func timelineMarker(index: Int, isLast: Bool, severity: StopRow.ConflictSeverity) -> some View {
         VStack(spacing: 0) {
             Text("\(index + 1)")
@@ -376,16 +388,6 @@ struct ItineraryView: View {
             } catch {
                 deleteError = DestructiveActionGuard.userMessage(for: error, noun: "the trip")
             }
-        }
-    }
-
-    private func renameTrip() {
-        let trimmed = renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
-        do {
-            try TripRepository(context: context).renameTrip(trip, to: trimmed)
-        } catch {
-            viewModel.errorMessage = "Couldn't rename the trip. Try again."
         }
     }
 
