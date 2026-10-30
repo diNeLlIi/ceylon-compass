@@ -15,10 +15,6 @@ struct ContentView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \Itinerary.startDate, ascending: true)]
     ) private var trips: FetchedResults<Itinerary>
 
-    init() {
-        Self.configureTabBarAppearance()
-    }
-
     var body: some View {
         TabView(selection: $router.selection) {
             Tab(AppTab.explore.title, systemImage: AppTab.explore.symbol, value: AppTab.explore) {
@@ -38,6 +34,8 @@ struct ContentView: View {
             }
         }
         .tint(AppBrand.link)
+        .toolbarBackground(AppBrand.canvas, for: .tabBar)
+        .toolbarBackgroundVisibility(.visible, for: .tabBar)
         .environment(router)
         .task {
             try? await AuthService.shared.signInAnonymouslyIfNeeded()
@@ -52,27 +50,6 @@ struct ContentView: View {
                 .sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
             locationService.monitorStops(stops)
         }
-    }
-
-    private static func configureTabBarAppearance() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(AppBrand.canvas)
-        appearance.shadowColor = UIColor.separator
-
-        let normal = UIColor.secondaryLabel
-        let selected = UIColor(AppBrand.link)
-        for item in [appearance.stackedLayoutAppearance,
-                     appearance.inlineLayoutAppearance,
-                     appearance.compactInlineLayoutAppearance] {
-            item.normal.iconColor = normal
-            item.normal.titleTextAttributes = [.foregroundColor: normal]
-            item.selected.iconColor = selected
-            item.selected.titleTextAttributes = [.foregroundColor: selected]
-        }
-
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
 

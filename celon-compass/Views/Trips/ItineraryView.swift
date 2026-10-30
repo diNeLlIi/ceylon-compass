@@ -233,7 +233,7 @@ struct ItineraryView: View {
                         x: .value("Day", day.date, unit: .day),
                         y: .value("Suitability", day.score)
                     )
-                    .foregroundStyle(day.isIdeal ? Color.mint : Color.gray.opacity(0.4))
+                    .foregroundStyle(day.isIdeal ? Color.mint : Color(.tertiaryLabel))
                 }
                 .chartYScale(domain: 0...100)
                 .frame(height: 120)
@@ -284,7 +284,7 @@ struct ItineraryView: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 24, height: 24)
-                .background(severity == .severe ? AppBrand.destructive : AppBrand.tealTop, in: Circle())
+                .background(severity == .severe ? AppBrand.destructiveSolid : AppBrand.tealTop, in: Circle())
             if !isLast {
                 Rectangle()
                     .fill(Color(.separator))

@@ -30,12 +30,7 @@ struct PreferencesSetupView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 6) {
-                CompassMark(size: 22)
-                Text(AppBrand.name)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
+            BrandHeader(surface: .onBrand)
 
             Text("Set up your trip preferences")
                 .font(.system(size: 26, weight: .bold))

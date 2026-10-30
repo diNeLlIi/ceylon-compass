@@ -44,7 +44,7 @@ struct CompareWeatherTableView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Forecast")
                 .font(.title3.weight(.bold))
-                .foregroundStyle(AppBrand.navy)
+                .foregroundStyle(AppBrand.heading)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -74,10 +74,10 @@ struct CompareWeatherTableView: View {
                         .foregroundStyle(.secondary)
                     Text(day, format: .dateTime.day())
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(AppBrand.navy)
+                        .foregroundStyle(AppBrand.heading)
                 }
                 .frame(width: Self.cellWidth, height: 48)
-                .background(isBestWindow(day) ? AppBrand.tealTop.opacity(0.14) : Color.clear)
+                .background(isBestWindow(day) ? AppBrand.accentTint : Color.clear)
             }
         }
     }
@@ -101,7 +101,7 @@ struct CompareWeatherTableView: View {
             avatar(for: destination)
             Text(destination.name ?? "Unknown")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(AppBrand.navy)
+                .foregroundStyle(AppBrand.heading)
                 .lineLimit(1)
         }
         .frame(width: Self.destColumnWidth, height: Self.rowHeight, alignment: .leading)
@@ -123,7 +123,7 @@ struct CompareWeatherTableView: View {
             .clipShape(Circle())
         } else {
             Circle()
-                .fill(AppBrand.tealTop.opacity(0.2))
+                .fill(AppBrand.accentTint)
                 .frame(width: 32, height: 32)
         }
     }
@@ -142,7 +142,7 @@ struct CompareWeatherTableView: View {
                     }
                 Text("\(Int(forecast.high.rounded()))°")
                     .font(.footnote.weight(.bold))
-                    .foregroundStyle(AppBrand.navy)
+                    .foregroundStyle(AppBrand.heading)
                 Text("\(forecast.rainProbability)%")
                     .font(.caption2)
                     .foregroundStyle(AppBrand.link)
@@ -153,7 +153,7 @@ struct CompareWeatherTableView: View {
             }
         }
         .frame(width: Self.cellWidth, height: Self.rowHeight)
-        .background(isBestWindow(day) ? AppBrand.tealTop.opacity(0.14) : Color.clear)
+        .background(isBestWindow(day) ? AppBrand.accentTint : Color.clear)
     }
 }
 

@@ -71,12 +71,7 @@ struct ValueSlide: View {
 
     private var topBar: some View {
         HStack {
-            HStack(spacing: 6) {
-                CompassMark(size: 22)
-                Text(AppBrand.name)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
+            BrandHeader(surface: .onBrand)
             Spacer()
             Button("Skip", action: onSkip)
                 .font(.system(size: 15, weight: .medium))

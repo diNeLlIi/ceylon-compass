@@ -23,7 +23,7 @@ struct CompareBottomBarView: View {
 
                 Button("Compare", action: onCompare)
                     .buttonStyle(.borderedProminent)
-                    .tint(AppBrand.tealMid)
+                    .tint(AppBrand.accentStrong)
                     .disabled(!selection.canCompare)
             }
         }

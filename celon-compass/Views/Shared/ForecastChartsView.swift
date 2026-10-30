@@ -19,7 +19,7 @@ struct ForecastChartsView: View {
                         x: .value("Day", forecast.date, unit: .day),
                         y: .value("High", forecast.high)
                     )
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .interpolationMethod(.catmullRom)
                     .lineStyle(StrokeStyle(lineWidth: 2))
 
@@ -27,7 +27,7 @@ struct ForecastChartsView: View {
                         x: .value("Day", forecast.date, unit: .day),
                         y: .value("High", forecast.high)
                     )
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .symbolSize(28)
                     .annotation(position: .top) {
                         Text("\(Int(forecast.high.rounded()))°")
@@ -58,7 +58,7 @@ struct ForecastChartsView: View {
                         x: .value("Day", forecast.date, unit: .day),
                         y: .value("Rain", forecast.rainProbability)
                     )
-                    .foregroundStyle(forecast.rainProbability >= 50 ? AppBrand.destructive : AppBrand.tealTop)
+                    .foregroundStyle(forecast.rainProbability >= 50 ? AppBrand.destructive : AppBrand.accent)
                     .cornerRadius(3)
                     .annotation(position: .top) {
                         Text("\(forecast.rainProbability)")

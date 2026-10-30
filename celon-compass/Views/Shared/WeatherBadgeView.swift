@@ -49,7 +49,7 @@ struct WeatherBadgeView: View {
     private var foregroundColor: Color {
         switch style {
         case .onImage: .white
-        case .onSurface: AppBrand.tealMid
+        case .onSurface: AppBrand.accentStrong
         }
     }
 
@@ -59,7 +59,7 @@ struct WeatherBadgeView: View {
         case .onImage:
             Capsule().fill(.ultraThinMaterial.opacity(0.8))
         case .onSurface:
-            Capsule().fill(AppBrand.tealTop.opacity(0.12))
+            Capsule().fill(AppBrand.accentTint)
         }
     }
 

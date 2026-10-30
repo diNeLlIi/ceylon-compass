@@ -26,6 +26,8 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(AppBrand.canvas)
             .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar()
             .task { await model.load() }
             .confirmationDialog(
                 "Clear cached maps & photos?",
@@ -72,6 +74,23 @@ struct SettingsView: View {
 //Preferences
     private var preferencesSection: some View {
         SettingsCard(title: "Preferences") {
+            SettingsRow(title: "Home city") {
+                TextField("Colombo", text: Binding(
+                    get: { model.preferences.homeCity },
+                    set: { model.preferences.homeCity = $0 }
+                ))
+                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("settings.homeCity")
+
+            NavigationLink {
+                EditInterestsView(preferences: model.preferences)
+            } label: {
+                SettingsRow(title: "Interests", subtitle: interestsSummary)
+            }
+            .accessibilityIdentifier("settings.interests")
+
             SettingsRow(title: "Temperature") {
                 UnitToggle(selection: Binding(
                     get: { model.preferences.temperatureUnit },
@@ -93,6 +112,15 @@ struct SettingsView: View {
             .tint(AppBrand.success)
             .accessibilityIdentifier("settings.tripReminders")
         }
+    }
+
+    private var interestsSummary: String {
+        let sorted = model.preferences.interests
+            .sorted { $0.rawValue < $1.rawValue }
+            .map(\.rawValue)
+        if sorted.isEmpty { return "None selected" }
+        if sorted.count <= 3 { return sorted.joined(separator: ", ") }
+        return "\(sorted.prefix(2).joined(separator: ", ")) +\(sorted.count - 2) more"
     }
 
 //user data

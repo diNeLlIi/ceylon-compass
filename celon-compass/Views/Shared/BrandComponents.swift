@@ -63,62 +63,63 @@ struct BrandBackground: View {
     }
 }
 
+enum BrandSurface {
+    case onBrand
+    case onSurface
+
+    var ink: Color {
+        switch self {
+        case .onBrand: .white
+        case .onSurface: AppBrand.heading
+        }
+    }
+}
+
 struct CompassMark: View {
     var size: CGFloat = 96
 
     var body: some View {
-        ZStack {
-            Circle()
-                .stroke(.white.opacity(0.35), lineWidth: max(size * 0.014, 1))
-
-            // Crosshair lines running through the mark.
-            Rectangle()
-                .fill(.white.opacity(0.35))
-                .frame(width: max(size * 0.01, 1), height: size)
-            Rectangle()
-                .fill(.white.opacity(0.35))
-                .frame(width: size, height: max(size * 0.01, 1))
-
-            Circle()
-                .inset(by: size * 0.08)
-                .stroke(AppBrand.amber, lineWidth: size * 0.035)
-
-            CompassStar()
-                .fill(.white)
-                .frame(width: size * 0.72, height: size * 0.72)
-                .shadow(color: .black.opacity(0.25), radius: size * 0.04, y: size * 0.02)
-
-            Circle()
-                .fill(AppBrand.tealTop)
-                .overlay(Circle().stroke(.white, lineWidth: size * 0.02))
-                .frame(width: size * 0.13, height: size * 0.13)
-        }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        
+        Image(.brandMark)
+            .resizable()
+            .interpolation(.high)
+            .scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
     }
 }
 
-struct CompassStar: Shape {
-    func path(in rect: CGRect) -> Path {
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let outer = min(rect.width, rect.height) / 2
-        let inner = outer * 0.2
-        var path = Path()
-        for index in 0..<8 {
-            let angle = Double(index) * .pi / 4 - .pi / 2
-            let radius = index.isMultiple(of: 2) ? outer : inner
-            let point = CGPoint(
-                x: center.x + CGFloat(cos(angle)) * radius,
-                y: center.y + CGFloat(sin(angle)) * radius
-            )
-            if index == 0 {
-                path.move(to: point)
-            } else {
-                path.addLine(to: point)
-            }
+
+struct BrandHeader: View {
+    var surface: BrandSurface = .onSurface
+    var markSize: CGFloat = 22
+    var fontSize: CGFloat = 15
+
+    var body: some View {
+        HStack(spacing: 7) {
+            CompassMark(size: markSize)
+            Text(AppBrand.name)
+                .font(.system(size: fontSize, weight: .semibold))
+                .foregroundStyle(surface.ink)
+                .lineLimit(1)
+                .fixedSize()
         }
-        path.closeSubpath()
-        return path
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(AppBrand.name)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+extension View {
+ 
+    func brandToolbar() -> some View {
+        toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                BrandHeader()
+            }
+            .sharedBackgroundVisibility(.hidden)
+        }
     }
 }
 
@@ -130,9 +131,21 @@ struct PressableButtonStyle: ButtonStyle {
     }
 }
 
-#Preview {
+#Preview("On brand") {
     ZStack {
         BrandBackground()
-        CompassMark(size: 120)
+        VStack(spacing: 32) {
+            CompassMark(size: 120)
+            BrandHeader(surface: .onBrand)
+        }
     }
+}
+
+#Preview("On surface") {
+    VStack(spacing: 32) {
+        CompassMark(size: 120)
+        BrandHeader()
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(AppBrand.canvas)
 }

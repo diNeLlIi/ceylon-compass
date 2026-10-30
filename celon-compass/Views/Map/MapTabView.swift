@@ -97,6 +97,7 @@ struct MapTabView: View {
             .ignoresSafeArea(.container, edges: .bottom)
             .navigationTitle("Map")
             .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     styleToggle
@@ -128,15 +129,15 @@ struct MapTabView: View {
     private var styleToggle: some View {
         Button {
             mapStyle = mapStyle.next
-            UISelectionFeedbackGenerator().selectionChanged()
         } label: {
             Image(systemName: mapStyle.toggleSymbol)
-                .foregroundStyle(AppBrand.navy)
+                .foregroundStyle(AppBrand.heading)
                 .padding(8)
                 .background(AppBrand.card.opacity(0.9), in: Circle())
                 .overlay(Circle().stroke(Color(.separator), lineWidth: 0.5))
         }
         .accessibilityLabel("Switch map style")
+        .sensoryFeedback(.selection, trigger: mapStyle)
     }
 
     private func destinationForecast(_ destination: Destination) -> DayForecast? {
@@ -232,7 +233,7 @@ private struct WeatherPin: View {
                     .padding(.vertical, 2)
                     .background(AppBrand.card, in: Capsule())
                     .overlay(Capsule().stroke(Color(.separator), lineWidth: 0.5))
-                    .foregroundStyle(AppBrand.navy)
+                    .foregroundStyle(AppBrand.heading)
             }
         }
     }
@@ -246,8 +247,8 @@ private struct WeatherPin: View {
         switch condition {
         case .clear: return AppBrand.amber
         case .cloudy: return AppBrand.tealTop
-        case .rain: return AppBrand.link
-        case .storm: return AppBrand.destructive
+        case .rain: return AppBrand.linkSolid
+        case .storm: return AppBrand.destructiveSolid
         }
     }
 }
@@ -293,7 +294,7 @@ private struct DestinationQuickSheet: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(destination.name ?? "Destination")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(AppBrand.navy)
+                        .foregroundStyle(AppBrand.heading)
                     if let category = destination.category {
                         Text(category)
                             .font(.caption.weight(.semibold))
@@ -339,6 +340,7 @@ private struct DestinationQuickSheet: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .sensoryFeedback(.success, trigger: addedTripTitle)
     }
 
     private var addToTripButton: some View {
@@ -350,8 +352,8 @@ private struct DestinationQuickSheet: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(AppBrand.navy.opacity(0.08), in: Capsule())
-            .foregroundStyle(AppBrand.navy)
+            .background(AppBrand.heading.opacity(0.08), in: Capsule())
+            .foregroundStyle(AppBrand.heading)
         }
         .buttonStyle(.plain)
         .disabled(addedTripTitle != nil)
@@ -395,7 +397,6 @@ private struct DestinationQuickSheet: View {
             try context.save()
             try repository.recomputeConflicts(for: trip)
             addedTripTitle = trip.title
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
         } catch {
             errorMessage = "Couldn't add this stop. Try again."
         }
@@ -428,7 +429,7 @@ private struct DestinationQuickSheet: View {
             Text(value)
                 .font(.subheadline.weight(.semibold))
         }
-        .foregroundStyle(AppBrand.navy)
+        .foregroundStyle(AppBrand.heading)
     }
 }
 

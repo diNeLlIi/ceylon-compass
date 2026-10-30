@@ -51,10 +51,10 @@ struct TimeWindowPickerView: View {
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
                 .background(isSelected ? AppBrand.card : Color.clear, in: Capsule())
-                .foregroundStyle(isSelected ? AppBrand.navy : .secondary)
+                .foregroundStyle(isSelected ? AppBrand.heading : .secondary)
                 .overlay(
                     Capsule()
-                        .stroke(isSelected ? AppBrand.tealTop.opacity(0.4) : Color.clear, lineWidth: 1)
+                        .stroke(isSelected ? AppBrand.accent.opacity(0.4) : Color.clear, lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)

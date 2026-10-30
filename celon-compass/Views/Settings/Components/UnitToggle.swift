@@ -2,7 +2,6 @@
 //  UnitToggle.swift
 //  celon-compass
 //
-//  Custom °C / °F pill. VoiceOver sees it as a segmented Picker.
 //
 
 import SwiftUI
@@ -25,12 +24,12 @@ struct UnitToggle: View {
                         .background {
                             if isSelected {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .fill(.white)
+                                    .fill(AppBrand.cardRaised)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                            .stroke(.black.opacity(0.12), lineWidth: 0.5)
+                                            .stroke(AppBrand.hairline, lineWidth: 0.5)
                                     )
-                                    .shadow(color: .black.opacity(0.08), radius: 2, y: 1)
+                                    .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
                                     .matchedGeometryEffect(id: "thumb", in: thumbNamespace)
                             }
                         }
@@ -43,7 +42,7 @@ struct UnitToggle: View {
         .background(AppBrand.canvas, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(.black.opacity(0.08), lineWidth: 0.5)
+                .stroke(AppBrand.hairline, lineWidth: 0.5)
         )
         .accessibilityRepresentation {
             Picker("Temperature", selection: $selection) {

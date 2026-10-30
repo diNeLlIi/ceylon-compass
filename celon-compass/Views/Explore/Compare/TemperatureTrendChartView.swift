@@ -2,7 +2,7 @@
 //  TemperatureTrendChartView.swift
 //  celon-compass
 //
-//  Needs the Charts system framework linked on the app target (import Charts).
+//  Needs the Charts system framework linked on the app target
 //
 
 import SwiftUI
@@ -12,7 +12,7 @@ struct TemperatureTrendChartView: View {
     let destinations: [Destination]
     let forecasts: [UUID: [DayForecast]]
 
-    private static let seriesColors: [Color] = [AppBrand.tealTop, AppBrand.amber, AppBrand.navy]
+    private static let seriesColors: [Color] = [AppBrand.accent, AppBrand.amber, AppBrand.accentStrong]
 
     private struct Point: Identifiable {
         let id = UUID()

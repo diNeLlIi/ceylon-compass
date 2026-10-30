@@ -34,10 +34,10 @@ struct RadiusSliderView: View {
                 Spacer()
                 Text("\(Int(liveValue)) km")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(AppBrand.tealTop.opacity(0.12), in: Capsule())
+                    .background(AppBrand.accentTint, in: Capsule())
             }
 
             Slider(
@@ -50,7 +50,7 @@ struct RadiusSliderView: View {
                     }
                 }
             )
-            .tint(AppBrand.tealTop)
+            .tint(AppBrand.accent)
 
             HStack {
                 Text("\(Int(range.lowerBound)) km")

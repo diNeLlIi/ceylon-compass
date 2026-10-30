@@ -42,7 +42,7 @@ struct StopRow: View {
                     if isGem {
                         Text("GEM")
                             .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(AppBrand.navy)
+                            .foregroundStyle(AppBrand.heading)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(AppBrand.amber.opacity(0.35), in: Capsule())

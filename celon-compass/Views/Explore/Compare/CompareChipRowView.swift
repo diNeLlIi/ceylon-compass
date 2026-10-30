@@ -26,7 +26,7 @@ struct CompareChipRowView: View {
             avatar(for: destination)
             Text(destination.name ?? "Unknown")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppBrand.navy)
+                .foregroundStyle(AppBrand.heading)
                 .lineLimit(1)
 
             Button {
@@ -66,12 +66,12 @@ struct CompareChipRowView: View {
             .clipShape(Circle())
         } else {
             Circle()
-                .fill(AppBrand.tealTop.opacity(0.25))
+                .fill(AppBrand.accentTint)
                 .frame(width: 28, height: 28)
                 .overlay {
                     Text(String(destination.name?.prefix(1) ?? "?"))
                         .font(.caption2.weight(.bold))
-                        .foregroundStyle(AppBrand.tealMid)
+                        .foregroundStyle(AppBrand.accentStrong)
                 }
         }
     }

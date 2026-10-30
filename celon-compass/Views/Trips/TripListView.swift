@@ -44,6 +44,8 @@ struct TripListView: View {
             }
             .background(AppBrand.canvas)
             .navigationTitle("My Trips")
+            .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar()
             .navigationDestination(for: Itinerary.self) { trip in
                 ItineraryView(trip: trip)
             }
@@ -150,9 +152,9 @@ struct TripListView: View {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "briefcase")
                     .font(.system(size: 40))
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .frame(width: 120, height: 90)
-                    .background(AppBrand.tealTop.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .background(AppBrand.accentTint, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
 
                 Image(systemName: "sun.max.fill")
                     .font(.system(size: 18))

@@ -19,7 +19,7 @@ struct RankedDestinationRow: View {
                     HStack(spacing: 8) {
                         Text(destination.name ?? "Unknown")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(AppBrand.navy)
+                            .foregroundStyle(AppBrand.heading)
                         bandPill
                         Spacer(minLength: 0)
                     }
@@ -39,7 +39,7 @@ struct RankedDestinationRow: View {
         .background(AppBrand.card, in: RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(rank == 1 ? AppBrand.tealTop.opacity(0.45) : Color(.separator).opacity(0.4),
+                .stroke(rank == 1 ? AppBrand.accent.opacity(0.45) : Color(.separator).opacity(0.4),
                         lineWidth: rank == 1 ? 1.5 : 1)
         )
         .padding(.horizontal)
@@ -127,7 +127,7 @@ struct RankedDestinationRow: View {
         switch score.band {
         case .ideal: return AppBrand.success
         case .good: return AppBrand.amber
-        case .fair: return AppBrand.tealTop
+        case .fair: return AppBrand.accent
         }
     }
 }

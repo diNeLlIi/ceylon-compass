@@ -56,7 +56,7 @@ struct TripHeroCardView: View {
                 if let badgeText = daysUntilText {
                     Text(badgeText)
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(AppBrand.navy)
+                        .foregroundStyle(AppBrand.heading)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(AppBrand.amber, in: Capsule())

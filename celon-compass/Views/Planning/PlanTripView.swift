@@ -111,7 +111,7 @@ struct PlanTripView: View {
             VStack(spacing: 2) {
                 Image(systemName: forecast.condition.symbolName)
                     .font(.title3)
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .symbolRenderingMode(.hierarchical)
                 Text("\(Int(forecast.high.rounded()))°")
                     .font(.subheadline.weight(.bold))
@@ -211,10 +211,10 @@ struct PlanTripView: View {
                 Spacer()
                 Text("Community")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(AppBrand.tealTop)
+                    .foregroundStyle(AppBrand.accent)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(AppBrand.tealTop.opacity(0.12), in: Capsule())
+                    .background(AppBrand.accentTint, in: Capsule())
             }
             .padding(.horizontal)
 
@@ -222,7 +222,7 @@ struct PlanTripView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "sparkles")
                         .font(.title2)
-                        .foregroundStyle(AppBrand.tealTop)
+                        .foregroundStyle(AppBrand.accent)
                     Text(viewModel.isLoadingGems ? "Looking for gems…" : "No gems yet")
                         .font(.subheadline.weight(.semibold))
                     Text(

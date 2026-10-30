@@ -54,6 +54,7 @@ struct ExploreView: View {
             }
             .navigationTitle(showNavigationTitle ? "Explore" : "")
             .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar()
             .task { await viewModel.load() }
             .refreshable { await viewModel.refresh() }
             .safeAreaInset(edge: .bottom) {
@@ -164,16 +165,16 @@ struct ExploreView: View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(Color(.darkGray))
-            TextField("", text: $viewModel.searchText, prompt: Text("Search destinations").foregroundStyle(Color(.darkGray)))
+                .foregroundStyle(.secondary)
+            TextField("", text: $viewModel.searchText, prompt: Text("Search destinations").foregroundStyle(.secondary))
                 .font(.body)
-                .foregroundStyle(Color(.darkGray))
+                .foregroundStyle(.primary)
             if !viewModel.searchText.isEmpty {
                 Button {
                     viewModel.searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(Color(.darkGray))
+                        .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
             }
@@ -181,7 +182,7 @@ struct ExploreView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 13)
         .background(.ultraThinMaterial, in: Capsule())
-        .overlay(Capsule().stroke(.white.opacity(0.4), lineWidth: 0.5))
+        .overlay(Capsule().stroke(AppBrand.hairline, lineWidth: 0.5))
         .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 4)
         .padding(.horizontal)
         .padding(.bottom, 8)

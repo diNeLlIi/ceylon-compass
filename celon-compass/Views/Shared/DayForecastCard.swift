@@ -17,14 +17,14 @@ struct DayForecastCard: View {
 
             Text(isToday ? "Today" : weekdayText)
                 .font(.caption2.weight(isToday ? .bold : .semibold))
-                .foregroundStyle(isToday ? AppBrand.navy : Color.secondary)
+                .foregroundStyle(isToday ? AppBrand.heading : Color.secondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
 
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(dayNumberText)
                     .font(.title3.weight(.bold))
-                    .foregroundStyle(AppBrand.navy)
+                    .foregroundStyle(AppBrand.heading)
                 Text(monthText)
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.secondary)
@@ -32,14 +32,14 @@ struct DayForecastCard: View {
 
             Image(systemName: forecast.condition.symbolName)
                 .font(.title3)
-                .foregroundStyle(AppBrand.tealTop)
+                .foregroundStyle(AppBrand.accent)
                 .symbolRenderingMode(.hierarchical)
                 .frame(height: 26)
 
             HStack(spacing: 5) {
                 Text("\(Int(forecast.high.rounded()))°")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(AppBrand.navy)
+                    .foregroundStyle(AppBrand.heading)
                 Text("\(Int(forecast.low.rounded()))°")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -62,7 +62,7 @@ struct DayForecastCard: View {
         .background(cardFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isBestWindow ? AppBrand.tealTop : Color.clear, lineWidth: 1.5)
+                .stroke(isBestWindow ? AppBrand.accent : Color.clear, lineWidth: 1.5)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityText)
@@ -70,7 +70,7 @@ struct DayForecastCard: View {
 
     
     private var cardFill: Color {
-        isToday ? AppBrand.navy.opacity(0.05) : AppBrand.card
+        isToday ? AppBrand.cardHighlight : AppBrand.card
     }
 
     private var weekdayText: String {

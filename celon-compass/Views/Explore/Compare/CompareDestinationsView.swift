@@ -15,7 +15,7 @@ struct CompareDestinationsView: View {
 
     @State private var window: CompareWindow = .next5
     @State private var showingPlanSheet = false
-    @State private var shareImage: UIImage?
+    @State private var shareImage: Image?
 
     private var selectedDestinations: [Destination] {
         selection.orderedIds.compactMap { id in
@@ -38,8 +38,8 @@ struct CompareDestinationsView: View {
     }
 
     private var bestWindow: BestWindow? {
-        // Allow a 1-day recommendation when the user picks a single-day custom window;
-        // the default 2-day minimum would otherwise always return nil for that case.
+        // Allow a 1-day recommendation when the user picks a single-day custom window:
+        // the default 2-day minimum would otherwise always return nil
         let minLength = max(1, min(2, activeDays.count))
         return BestWindowCalculator.bestWindow(forecasts: scopedForecasts, minimumWindowLength: minLength)
     }
@@ -101,7 +101,7 @@ struct CompareDestinationsView: View {
                 } label: {
                     Text("Temperature trend")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppBrand.navy)
+                        .foregroundStyle(AppBrand.heading)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -137,7 +137,7 @@ struct CompareDestinationsView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Ranked for this window")
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(AppBrand.navy)
+                        .foregroundStyle(AppBrand.heading)
                     Spacer()
                     Text("Weather score")
                         .font(.caption)
@@ -163,6 +163,6 @@ struct CompareDestinationsView: View {
         let card = CompareShareCardView(window: bestWindow, ranked: ranked)
         let renderer = ImageRenderer(content: card)
         renderer.scale = 2.0
-        shareImage = renderer.uiImage
+        shareImage = renderer.cgImage.map { Image(decorative: $0, scale: 2.0) }
     }
 }

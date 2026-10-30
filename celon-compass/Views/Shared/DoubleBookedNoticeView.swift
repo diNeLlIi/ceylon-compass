@@ -32,7 +32,7 @@ struct DoubleBookedNoticeView: View {
                 Text("Fix")
                     .font(.subheadline.weight(.semibold))
                     .underline()
-                    .foregroundStyle(AppBrand.navy)
+                    .foregroundStyle(AppBrand.heading)
             }
             .buttonStyle(.plain)
         }

@@ -71,7 +71,7 @@ struct DestinationDetailView: View {
                         Text(category.uppercased())
                             .font(.system(size: 10, weight: .bold))
                             .tracking(0.6)
-                            .foregroundStyle(AppBrand.navy)
+                            .foregroundStyle(AppBrand.heading)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 3)
                             .background(AppBrand.amber, in: Capsule())
@@ -123,7 +123,7 @@ struct DestinationDetailView: View {
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppBrand.tealTop.opacity(0.15), in: RoundedRectangle(cornerRadius: 12))
+            .background(AppBrand.accentTint, in: RoundedRectangle(cornerRadius: 12))
             .padding(.horizontal)
         }
     }
@@ -220,7 +220,7 @@ struct DestinationDetailView: View {
 //                HStack(spacing: 8) {
 //                    Text(week.title)
 //                        .font(.subheadline.weight(.bold))
-//                        .foregroundStyle(AppBrand.navy)
+//                        .foregroundStyle(AppBrand.heading)
 //
 //                    if week.containsBestWindow {
 //                        Text(week.bestDayBadge)

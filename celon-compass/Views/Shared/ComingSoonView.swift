@@ -20,6 +20,8 @@ struct ComingSoonView: View {
                 description: Text(message)
             )
             .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .brandToolbar()
             .background(AppBrand.canvas)
         }
     }
