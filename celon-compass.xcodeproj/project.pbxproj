@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		DF32023A3088C3FE004A38CF /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DF3202393088C3FE004A38CF /* FirebaseAuth */; };
 		DF32023C3088C3FE004A38CF /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DF32023B3088C3FE004A38CF /* FirebaseFirestore */; };
+		EF9936E23095672E0026E6F7 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF9936E13095672E0026E6F7 /* WidgetKit.framework */; };
+		EF9936E43095672E0026E6F7 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EF9936E33095672E0026E6F7 /* SwiftUI.framework */; };
+		EF9936F5309567300026E6F7 /* WanderLankaWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = EF9936DF3095672E0026E6F7 /* WanderLankaWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -19,22 +22,225 @@
 			remoteGlobalIDString = DFD85DD9306D49A3009DE921;
 			remoteInfo = "celon-compass";
 		};
+		EF9936F3309567300026E6F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DFD85DD2306D49A3009DE921 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EF9936DE3095672E0026E6F7;
+			remoteInfo = WanderLankaWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		EF9936FA309567300026E6F7 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EF9936F5309567300026E6F7 /* WanderLankaWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		DFD85DDA306D49A3009DE921 /* celon-compass.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "celon-compass.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "celon-compassTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF9936DF3095672E0026E6F7 /* WanderLankaWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WanderLankaWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF9936E13095672E0026E6F7 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		EF9936E33095672E0026E6F7 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		EF9936F6309567300026E6F7 /* Exceptions for "WanderLankaWidget" folder in "WanderLankaWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EF9936DE3095672E0026E6F7 /* WanderLankaWidgetExtension */;
+		};
+		EF993703309572AB0026E6F7 /* Exceptions for "celon-compass" folder in "celon-compass" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DFD85DD9306D49A3009DE921 /* celon-compass */;
+		};
+		EF9937A1309572AB0026E6F7 /* Exceptions for "celon-compass" folder in "WanderLankaWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/AdaptiveLayout.swift,
+				App/AppTab.swift,
+				App/ceylon_compassApp.swift,
+				App/ContentView.swift,
+				App/RootView.swift,
+				App/TabRouter.swift,
+				Info.plist,
+				Intents/AddToTripIntent.swift,
+				Intents/CeylonShortcuts.swift,
+				Intents/CheckWeatherIntent.swift,
+				Intents/DestinationEntity.swift,
+				Intents/NextStopIntent.swift,
+				Intents/ShowItineraryIntent.swift,
+				Intents/TripEntity.swift,
+				Models/DestinationCategory.swift,
+				Models/DestinationDTO.swift,
+				"Models/Favourite+CoreDataClass.swift",
+				"Models/Favourite+CoreDataProperties.swift",
+				"Models/GemQueryCache+CoreDataClass.swift",
+				"Models/GemQueryCache+CoreDataProperties.swift",
+				"Models/Itinerary+Convenience.swift",
+				"Models/NSManagedObject+Touch.swift",
+				Models/OpenMeteoResponse.swift,
+				Models/POI.swift,
+				Models/Province.swift,
+				Models/SyncDTOs.swift,
+				"Models/Tombstone+CoreDataClass.swift",
+				"Models/Tombstone+CoreDataProperties.swift",
+				"Models/UserProfile+CoreDataClass.swift",
+				"Models/UserProfile+CoreDataProperties.swift",
+				Resources/Colombo.gpx,
+				Resources/Destinations.json,
+				Resources/Ella.gpx,
+				Resources/Galle.gpx,
+				"Resources/GoogleService-Info.plist",
+				Resources/Kandy.gpx,
+				Services/AccountService.swift,
+				Services/ActiveTripResolver.swift,
+				Services/AuthService.swift,
+				Services/BestWindowCalculator.swift,
+				Services/BiometricService.swift,
+				Services/CacheService.swift,
+				Services/CatalogSeeder.swift,
+				Services/CatalogService.swift,
+				Services/ConflictRules.swift,
+				Services/CoreDataSync.swift,
+				Services/DestructiveActionGuard.swift,
+				Services/FavouritesStore.swift,
+				Services/FirestoreSubtree.swift,
+				Services/ForecastHorizon.swift,
+				Services/GemCache.swift,
+				Services/JSONLoader.swift,
+				Services/LocationService.swift,
+				Services/NotificationPermission.swift,
+				Services/OverpassService.swift,
+				Services/PreferencesStore.swift,
+				Services/RouteCorridor.swift,
+				Services/RoutingService.swift,
+				Services/SyncCoordinator.swift,
+				Services/SyncService.swift,
+				Services/SyncStatusStore.swift,
+				Services/TripReminderScheduler.swift,
+				Services/TripRepository.swift,
+				Services/UserProfileStore.swift,
+				Services/VisionService.swift,
+				Services/VisitLogger.swift,
+				Services/WeatherService.swift,
+				Services/WeatherServicing.swift,
+				ViewModels/AppLockState.swift,
+				ViewModels/AuthViewModel.swift,
+				ViewModels/CompareSelection.swift,
+				ViewModels/CompareWindow.swift,
+				ViewModels/CompleteTripViewModel.swift,
+				ViewModels/DestinationDetailViewModel.swift,
+				ViewModels/ExploreViewModel.swift,
+				ViewModels/ItineraryViewModel.swift,
+				ViewModels/MyTripsViewModel.swift,
+				ViewModels/PlanTripViewModel.swift,
+				ViewModels/SettingsViewModel.swift,
+				Views/Auth/AuthFlowView.swift,
+				Views/Auth/CheckEmailView.swift,
+				Views/Auth/CreateAccountView.swift,
+				Views/Auth/ForgotPasswordView.swift,
+				Views/Auth/PasswordField.swift,
+				Views/Auth/SignInView.swift,
+				Views/Detail/DestinationDetailView.swift,
+				Views/Explore/BestWeatherBentoView.swift,
+				Views/Explore/CategoryChipsView.swift,
+				Views/Explore/Compare/CompareChipRowView.swift,
+				Views/Explore/Compare/CompareDestinationsView.swift,
+				Views/Explore/Compare/CompareShareCardView.swift,
+				Views/Explore/Compare/CompareWeatherTableView.swift,
+				Views/Explore/Compare/PlanFromCompareSheet.swift,
+				Views/Explore/Compare/RankedDestinationRow.swift,
+				Views/Explore/Compare/RecommendedWindowCard.swift,
+				Views/Explore/Compare/TemperatureTrendChartView.swift,
+				Views/Explore/Compare/TimeWindowPickerView.swift,
+				Views/Explore/CompareBottomBarView.swift,
+				Views/Explore/DestinationCardView.swift,
+				Views/Explore/DestinationFeatureCardView.swift,
+				Views/Explore/ExploreSidebarView.swift,
+				Views/Explore/ExploreView.swift,
+				Views/Explore/FavouritesView.swift,
+				Views/Explore/HeroDestinationView.swift,
+				Views/Explore/SkeletonCardView.swift,
+				Views/Map/MapPinModel.swift,
+				Views/Map/MapPins.swift,
+				Views/Map/MapPinSheets.swift,
+				Views/Map/MapTabView.swift,
+				Views/Memories/MemoriesView.swift,
+				Views/Memories/MemoryEditSheet.swift,
+				Views/Onboarding/OnboardingView.swift,
+				Views/Onboarding/PreferencesSetupView.swift,
+				Views/Onboarding/ValueSlide.swift,
+				Views/Planning/PlanTripView.swift,
+				Views/Settings/AccountView.swift,
+				Views/Settings/Components/BiometricBadge.swift,
+				Views/Settings/Components/SettingsCard.swift,
+				Views/Settings/Components/SettingsRow.swift,
+				Views/Settings/Components/UnitToggle.swift,
+				Views/Settings/EditInterestsView.swift,
+				Views/Settings/ProfileView.swift,
+				Views/Settings/SecurityView.swift,
+				Views/Settings/SettingsView.swift,
+				Views/Shared/AttentionBanner.swift,
+				Views/Shared/BrandComponents.swift,
+				Views/Shared/DayForecastCard.swift,
+				Views/Shared/DestinationSearchBar.swift,
+				Views/Shared/DoubleBookedNoticeView.swift,
+				Views/Shared/ForecastChartsView.swift,
+				Views/Shared/LaunchGateView.swift,
+				Views/Shared/PrivacyShieldView.swift,
+				Views/Shared/RadiusSliderView.swift,
+				Views/Shared/StopRow.swift,
+				Views/Shared/SwipeActionsCard.swift,
+				Views/Shared/WeatherBadgeView.swift,
+				Views/Trips/AddStopSheet.swift,
+				Views/Trips/CompleteTripSheet.swift,
+				Views/Trips/ItineraryView.swift,
+				Views/Trips/RescheduleStopSheet.swift,
+				Views/Trips/TripHeroCardView.swift,
+				Views/Trips/TripHistoryListView.swift,
+				Views/Trips/TripHistoryRowView.swift,
+				Views/Trips/TripListView.swift,
+			);
+			target = EF9936DE3095672E0026E6F7 /* WanderLankaWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DFD85DDC306D49A3009DE921 /* celon-compass */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EF993703309572AB0026E6F7 /* Exceptions for "celon-compass" folder in "celon-compass" target */,
+				EF9937A1309572AB0026E6F7 /* Exceptions for "celon-compass" folder in "WanderLankaWidgetExtension" target */,
+			);
 			path = "celon-compass";
 			sourceTree = "<group>";
 		};
 		EF41E136308CA0B8006A9520 /* celon-compassTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "celon-compassTests";
+			sourceTree = "<group>";
+		};
+		EF9936E53095672E0026E6F7 /* WanderLankaWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				EF9936F6309567300026E6F7 /* Exceptions for "WanderLankaWidget" folder in "WanderLankaWidgetExtension" target */,
+			);
+			path = WanderLankaWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -56,6 +262,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EF9936DC3095672E0026E6F7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF9936E43095672E0026E6F7 /* SwiftUI.framework in Frameworks */,
+				EF9936E23095672E0026E6F7 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -64,6 +279,8 @@
 			children = (
 				DFD85DDC306D49A3009DE921 /* celon-compass */,
 				EF41E136308CA0B8006A9520 /* celon-compassTests */,
+				EF9936E53095672E0026E6F7 /* WanderLankaWidget */,
+				EF9936E03095672E0026E6F7 /* Frameworks */,
 				DFD85DDB306D49A3009DE921 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -73,8 +290,18 @@
 			children = (
 				DFD85DDA306D49A3009DE921 /* celon-compass.app */,
 				EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */,
+				EF9936DF3095672E0026E6F7 /* WanderLankaWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		EF9936E03095672E0026E6F7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EF9936E13095672E0026E6F7 /* WidgetKit.framework */,
+				EF9936E33095672E0026E6F7 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,10 +314,12 @@
 				DFD85DD6306D49A3009DE921 /* Sources */,
 				DFD85DD7306D49A3009DE921 /* Frameworks */,
 				DFD85DD8306D49A3009DE921 /* Resources */,
+				EF9936FA309567300026E6F7 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				EF9936F4309567300026E6F7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DFD85DDC306D49A3009DE921 /* celon-compass */,
@@ -127,6 +356,29 @@
 			productReference = EF41E135308CA0B8006A9520 /* celon-compassTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		EF9936DE3095672E0026E6F7 /* WanderLankaWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF9936F7309567300026E6F7 /* Build configuration list for PBXNativeTarget "WanderLankaWidgetExtension" */;
+			buildPhases = (
+				EF9936DB3095672E0026E6F7 /* Sources */,
+				EF9936DC3095672E0026E6F7 /* Frameworks */,
+				EF9936DD3095672E0026E6F7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DFD85DDC306D49A3009DE921 /* celon-compass */,
+				EF9936E53095672E0026E6F7 /* WanderLankaWidget */,
+			);
+			name = WanderLankaWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = WanderLankaWidgetExtension;
+			productReference = EF9936DF3095672E0026E6F7 /* WanderLankaWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -134,7 +386,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2700;
+				LastSwiftUpdateCheck = 2710;
 				LastUpgradeCheck = 2710;
 				TargetAttributes = {
 					DFD85DD9306D49A3009DE921 = {
@@ -143,6 +395,9 @@
 					EF41E134308CA0B8006A9520 = {
 						CreatedOnToolsVersion = 27.0;
 						TestTargetID = DFD85DD9306D49A3009DE921;
+					};
+					EF9936DE3095672E0026E6F7 = {
+						CreatedOnToolsVersion = 27.1;
 					};
 				};
 			};
@@ -165,6 +420,7 @@
 			targets = (
 				DFD85DD9306D49A3009DE921 /* celon-compass */,
 				EF41E134308CA0B8006A9520 /* celon-compassTests */,
+				EF9936DE3095672E0026E6F7 /* WanderLankaWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -178,6 +434,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF41E133308CA0B8006A9520 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF9936DD3095672E0026E6F7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -201,6 +464,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EF9936DB3095672E0026E6F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -208,6 +478,11 @@
 			isa = PBXTargetDependency;
 			target = DFD85DD9306D49A3009DE921 /* celon-compass */;
 			targetProxy = EF41E139308CA0B8006A9520 /* PBXContainerItemProxy */;
+		};
+		EF9936F4309567300026E6F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EF9936DE3095672E0026E6F7 /* WanderLankaWidgetExtension */;
+			targetProxy = EF9936F3309567300026E6F7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -343,6 +618,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "celon-compass/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WanderLanka;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "WanderLanka uses Face ID to keep your trips secure.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Celon Compass uses your location in the background to alert you when you arrive at a planned stop.";
@@ -380,6 +656,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "celon-compass/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = WanderLanka;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "WanderLanka uses Face ID to keep your trips secure.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Celon Compass uses your location in the background to alert you when you arrive at a planned stop.";
@@ -449,6 +726,68 @@
 			};
 			name = Release;
 		};
+		EF9936F8309567300026E6F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WanderLankaWidget/WanderLankaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WanderLankaWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WanderLankaWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "diNeLlli.celon-compass.WanderLankaWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		EF9936F9309567300026E6F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = WanderLankaWidget/WanderLankaWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WanderLankaWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WanderLankaWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "diNeLlli.celon-compass.WanderLankaWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -475,6 +814,15 @@
 			buildConfigurations = (
 				EF41E13B308CA0B8006A9520 /* Debug */,
 				EF41E13C308CA0B8006A9520 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EF9936F7309567300026E6F7 /* Build configuration list for PBXNativeTarget "WanderLankaWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF9936F8309567300026E6F7 /* Debug */,
+				EF9936F9309567300026E6F7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

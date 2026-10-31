@@ -25,48 +25,45 @@ struct ValueSlide: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            heroBackground
+        VStack(spacing: 0) {
+            topBar
+                .padding(.top, 8)
 
-            VStack(spacing: 0) {
-                topBar
-                    .padding(.top, 8)
+            Spacer()
 
-                Spacer()
+            chipView
+                .padding(.bottom, 20)
 
-                chipView
-                    .padding(.bottom, 20)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(content.headline)
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineSpacing(2)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(content.headline)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.white)
-                        .lineSpacing(2)
-
-                    Text(content.subtext)
-                        .font(.system(size: 16))
-                        .foregroundStyle(.white.opacity(0.75))
-                        .lineSpacing(3)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 24)
-
-                Spacer()
-                    .frame(height: 40)
-
-                Button(action: onNext) {
-                    Text(isLast ? "Get started" : "Next")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(AppBrand.tealTop, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                }
-                .buttonStyle(PressableButtonStyle())
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
+                Text(content.subtext)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white.opacity(0.75))
+                    .lineSpacing(3)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 24)
+
+            Spacer()
+                .frame(height: 40)
+
+            Button(action: onNext) {
+                Text(isLast ? "Get started" : "Next")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 54)
+                    .background(AppBrand.tealTop, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .buttonStyle(PressableButtonStyle())
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
         }
+        .background { heroBackground }
     }
 
     private var topBar: some View {

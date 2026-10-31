@@ -2,9 +2,11 @@
 //  WanderLankaWidgetBundle.swift
 //  WanderLankaWidget
 //
+//  Created by Dinelli Samarakkody on 2026-10-31.
+//
 
-import SwiftUI
 import WidgetKit
+import SwiftUI
 
 @main
 struct WanderLankaWidgetBundle: WidgetBundle {
