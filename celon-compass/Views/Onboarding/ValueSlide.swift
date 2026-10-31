@@ -79,26 +79,25 @@ struct ValueSlide: View {
     }
 
     private var heroBackground: some View {
-        ZStack {
-            if let uiImage = UIImage(named: content.heroImage) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-            } else {
-                heroGradientFallback
+        Color.clear
+            .overlay {
+                if let uiImage = UIImage(named: content.heroImage) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    heroGradientFallback
+                }
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipped()
-        .overlay {
-            LinearGradient(
-                colors: [.clear, .clear, .black.opacity(0.35), .black.opacity(0.8)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-        
-        .ignoresSafeArea()
+            .clipped()
+            .overlay {
+                LinearGradient(
+                    colors: [.clear, .clear, .black.opacity(0.35), .black.opacity(0.8)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+            .ignoresSafeArea()
     }
 
     @ViewBuilder
