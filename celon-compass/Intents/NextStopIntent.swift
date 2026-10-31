@@ -10,7 +10,8 @@ import Foundation
 struct NextStopIntent: AppIntent {
     static var title: LocalizedStringResource = "Next Stop"
     static var description = IntentDescription("Reads the next stop on your active trip.")
-
+    
+    @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let context = PersistenceController.shared.container.viewContext
         let request = Itinerary.fetchRequest()
